@@ -5,6 +5,12 @@
 #define L 0.1  // Ancho entre las ruedas en metros
 #define R 0.05 // Radio de las ruedas en metros
 
+uint16_t angular_velocity1 = 0;
+uint16_t angular_velocity2 = 0;
+uint16_t angular_velocity3 = 0;
+uint16_t angular_velocity4 = 0;
+uint16_t dt = 0;
+
 // Estructura para almacenar la posición del robot
 struct Robot_stats {
     uint16_t x;      // Posición en el eje X
@@ -68,7 +74,30 @@ void update_Odometry(struct Robot_stats *robot, uint16_t v1, uint16_t v2, uint16
     }
 }
 
+// Leer encoders y actualizar control
+bool repeating_timer_callback(struct repeating_timer *t) {
+    // Este es el tiempo teórico aue ha pasado por el timer
+    uint16_t current_time = 1.0;
+
+    // Supuesta lectura de encoder de las ruedas
+    int new_counts1 = 1000;
+    int new_counts2 = 1200;
+    int new_counts3 = 1050;
+    int new_counts4 = 1250;    
+
+    // Calcula las velocidades angulares de las ruedas a partir de las lecturas de encoder
+    angular_velocity1 = update_angular_velocity(&encoder1, new_counts1, current_time);
+    angular_velocity2 = update_angular_velocity(&encoder2, new_counts2, current_time);
+    angular_velocity3 = update_angular_velocity(&encoder3, new_counts3, current_time);
+    angular_velocity4 = update_angular_velocity(&encoder4, new_counts4, current_time);
+
+    // Tiempo transcurrido (puedes ajustarlo según tus necesidades)
+    dt = current_time - encoder1.last_time;
+    return true;
+}
+
 int main() {
+
     // Inicializa la posición y la orientación del robot
     struct Robot_stats robot;
     robot.x = 0.0;
@@ -82,31 +111,21 @@ int main() {
     init_Encoder(&encoder3);
     init_Encoder(&encoder4);
 
-    // Supuesta lectura de encoder de las ruedas
-    int new_counts1 = 1000;
-    int new_counts2 = 1200;
-    int new_counts3 = 1050;
-    int new_counts4 = 1250;
+    // Configuración de un temporizador periódico 
+    // NOTA: se puede cambiar por el del PWM
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1000, repeating_timer_callback, NULL, &timer);
 
-    // Este es el tiempo actual en segundos
-    // NOTA : hay que hacer un timer para leer cada x tiempo
-    uint16_t current_time = 1.0;
+    while(true){
 
-    // Calcula las velocidades angulares de las ruedas a partir de las lecturas de encoder
-    uint16_t angular_velocity1 = update_angular_velocity(&encoder1, new_counts1, current_time);
-    uint16_t angular_velocity2 = update_angular_velocity(&encoder2, new_counts2, current_time);
-    uint16_t angular_velocity3 = update_angular_velocity(&encoder3, new_counts3, current_time);
-    uint16_t angular_velocity4 = update_angular_velocity(&encoder4, new_counts4, current_time);
+        // Actualiza la odometría del robot
+        update_Odometry(&robot, angular_velocity1, angular_velocity2, angular_velocity3, angular_velocity4, dt);
 
-    // Tiempo transcurrido (puedes ajustarlo según tus necesidades)
-    uint16_t dt = current_time - encoder1.last_time;
+        // Imprime la posición y la orientación
+        printf("Posición (X, Y): (%lf, %lf)\n", robot.x, robot.y);
+        printf("Orientación (Theta): %lf radianes\n", robot.theta);
 
-    // Actualiza la odometría del robot
-    update_Odometry(&robot, angular_velocity1, angular_velocity2, angular_velocity3, angular_velocity4, dt);
-
-    // Imprime la posición y la orientación
-    printf("Posición (X, Y): (%lf, %lf)\n", robot.x, robot.y);
-    printf("Orientación (Theta): %lf radianes\n", robot.theta);
+    }
 
     return 0;
 }
