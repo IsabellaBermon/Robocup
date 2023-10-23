@@ -5,36 +5,33 @@
 #include "pico/time.h"
 #include "encoder/encoder.h"
 
-
-
-
-#define S0 2
-#define S1 3
-#define S2 4
-
-
-
 #define SIG_SDA 0
 #define SCL 1
+#define circunference 0.037698
 #define TCA_ADDR 0x70 
 
 uint16_t angleMotor1 = 0;
 uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
 
+float distanceMotor1=0;
+float distanceMotor2=0;
+float distanceMotor3=0;
+
+uint16_t offsetAngleMotor1 = 0;
+uint16_t offsetAngleMotor2 = 0;
+uint16_t offsetAngleMotor3 = 0;
+
+uint16_t turnMotor1 = 0;
+uint16_t turnMotor2 = 0;
+uint16_t turnMotor3 = 0;
+bool banTurnsMotor1 = 0;
+bool banTurnsMotor2 = 0;
+bool banTurnsMotor3 = 0;
 
 void tca_select_channel(uint8_t channel){
     uint8_t data = 1 << channel;
     i2c_write_blocking(i2c0, TCA_ADDR, &data, 1, false);
-}
-
-
-
-void writeBinaryToPins(uint8_t number){
-  gpio_put(S0, (number & 0x1));
-  gpio_put(S1, (number & 0x2) >> 1);
-  gpio_put(S2, (number & 0x4) >> 2);
-
 }
 
 int16_t getAngle()
@@ -43,18 +40,55 @@ int16_t getAngle()
   readAngleRaw(&raw);
   return raw * 360 / 0xFFF;
 }
-bool timer_callback(repeating_timer_t *t){
-  // currentSDA = (currentSDA + 1)%3;
-  tca_select_channel(0);
-  angleMotor1 = getAngle();
-  tca_select_channel(1);
 
-  angleMotor2 = getAngle();
+
+int16_t angleSubtraction(int16_t angle, int16_t angleOffset)
+{
+  int16_t angleSub = angle - angleOffset;
+  if (angleSub < 0)
+  {
+    return 360 + angleSub;
+  }
+  else
+  {
+    return angleSub;
+  }
+}
+bool timer_callback(repeating_timer_t *t){
+  tca_select_channel(0);
+  angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
+  tca_select_channel(1);
+  angleMotor2 = angleSubtraction(getAngle(),offsetAngleMotor2);
   tca_select_channel(2);
-  angleMotor3 = getAngle();  
+  angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   return true;
 }
+float turnsToDistance(uint16_t *turnMotor)
+{
+  return *turnMotor * circunference;
+}
+void distanceRobotForward(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, float *distanceMotor){
 
+  if (angleMotor >= 350 && *banTurnsMotor)
+  {
+    (*turnMotor)++;
+    *banTurnsMotor = false;
+  }
+  else if (angleMotor <= 20)
+  {
+    *banTurnsMotor = true;
+  }
+  *distanceMotor = (*turnMotor)*circunference;
+
+}
+void getOffsets(){
+  tca_select_channel(0);
+  offsetAngleMotor1 = getAngle();
+  tca_select_channel(1);
+  offsetAngleMotor2 = getAngle();
+  tca_select_channel(2);
+  offsetAngleMotor3 = getAngle();  
+}
 
 int main(){
   stdio_init_all();
@@ -67,14 +101,20 @@ int main(){
   gpio_pull_up(SIG_SDA);
   gpio_pull_up(SCL);
 
+  getOffsets();
+
   add_repeating_timer_us(2000,&timer_callback,NULL,&timer);
 
 
 
-  while (1){  
-    printf("Motor 1 %d ",angleMotor1);
-    printf("Motor 2 %d ",angleMotor2);
-    printf("Motor 3 %d\n",angleMotor3);
+  while (1){
+    distanceRobotForward(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
+    distanceRobotForward(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
+    distanceRobotForward(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
+    printf("Motor 1 %f ",distanceMotor1);
+    printf("Motor 2 %f ",distanceMotor2);
+    printf("Motor 3 %f\n",distanceMotor3);
+
   }
   return 0;
 }                                                         
