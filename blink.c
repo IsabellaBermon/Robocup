@@ -46,24 +46,29 @@ static btstack_packet_callback_registration_t  hci_event_callback_registration;
 uint slice, channel;
 
 void stop(){
- 		pwm_set_chan_level(slice,channel,0);
-		gpio_put(12,0);
-		gpio_put(14,0);
-		gpio_put(15,0);}
+    pwm_set_chan_level(slice,channel,750);
+    gpio_put(12,0);
+    gpio_put(14,0);
+    gpio_put(15,0);
+    printf("Stop");}
 
 void forward(){
-		gpio_put(12,1);
-		pwm_set_chan_level(slice,channel,6000);}
+    gpio_put(12,1);
+    pwm_set_chan_level(slice,channel,1000);
+    printf("Forward");}
 
 void reverse(){
 	gpio_put(12,0);
-	pwm_set_chan_level(slice,channel,3000);}
+	pwm_set_chan_level(slice,channel,500);
+    printf("Reverse");}
 
 void forward_left(){
-	gpio_put(14,1); gpio_put(15,0); forward();}
+	gpio_put(14,1); gpio_put(15,0); forward();
+    printf("Forward_left");}
 	
 void forward_right(){
-	gpio_put(14,0); gpio_put(15,1); forward();}
+	gpio_put(14,0); gpio_put(15,1); forward();
+    printf("Forward_right");}
 
 const uint8_t adv_data[] = {
     // Flags general discoverable, BR/EDR not supported
@@ -114,6 +119,11 @@ static void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uin
 			   case 0x62: reverse();      break; // 'b'
 			   case 0x6c: forward_left(); break; // 'l'
 			   case 0x72: forward_right();break; // 'r'
+               default: 
+                        printf("Recibe: ");
+                        // printf_hexdump(packet, size);
+                        printf("%.*s\n", size, packet);
+
             }
             break;
         default:
@@ -130,10 +140,10 @@ int main() {
     gpio_set_dir(12,GPIO_OUT);
     gpio_set_dir(14,GPIO_OUT);
     gpio_set_dir(15,GPIO_OUT);                      
-    gpio_set_function(13, GPIO_FUNC_PWM);
-    slice = pwm_gpio_to_slice_num(13);
-    channel = pwm_gpio_to_channel(13);
-    pwm_set_clkdiv(slice, 256.0f);  //slowdown clock
+    gpio_set_function(12, GPIO_FUNC_PWM);
+    slice = pwm_gpio_to_slice_num(12);
+    channel = pwm_gpio_to_channel(12);
+    pwm_set_clkdiv(slice, 250.0f);  //slowdown clock
     pwm_set_wrap(slice, 10000);      //wrap time    
     pwm_set_enabled(slice, true);
     
