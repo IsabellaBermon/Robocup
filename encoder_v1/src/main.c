@@ -7,45 +7,60 @@
 #include <math.h>
 #include "pico/stdlib.h"
 
-// Definición de constantes
-#define SDA 0
+#define SIG_SDA 0
 #define SCL 1
-#define SDA1 2
-#define SCL1 3
-#define S0 24
-#define S1 25
-#define S2 26
-#define S3 27
-#define Sig_out 6
-#define PWM_PIN1 10        // pin 14   SLICE 5 CH A
-#define PWM_PIN2 11        // pin 15   SLICE 5 CH B
-#define finalDistance 1    // en metros
-#define perimeter 0.037698 // perimetro en metros
+#define circunference 0.037698
+#define radio 0.0925
+#define PI 3.14159265358979323846
+#define TCA_ADDR 0x70 
+#define PWM_PIN1 10 // pin 14   SLICE 5 CH A
+#define PWM_PIN2 11 // pin 15   SLICE 5 CH B
+#define PWM_PIN3 12 // pin 16   SLICE 6 CH A
+#define PWM_PIN4 13 // pin 17   SLICE 6 CH B
 
-float distance0 = 0;
-float distance1 = 0;
-bool banTurns0 = true;
-bool banTurns1 = true;
+uint16_t basePWM = 780;
 
-uint16_t turns0 = 0;
-uint16_t turns1 = 0;
-int16_t angleOffset0 = 0;
-int16_t angleOffset1 = 0;
-int16_t sel = 0;
+uint16_t angleMotor1 = 0;
+uint16_t angleMotor2 = 0;
+uint16_t angleMotor3 = 0;
+uint16_t angleMotor4 = 0;
 
-int16_t getAngle0()
+float distanceMotor1=0;
+float distanceMotor2=0;
+float distanceMotor3=0;
+float distanceMotor4=0;
+
+uint16_t offsetAngleMotor1 = 0;
+uint16_t offsetAngleMotor2 = 0;
+uint16_t offsetAngleMotor3 = 0;
+uint16_t offsetAngleMotor4 = 0;
+
+uint16_t turnMotor1 = 0;
+uint16_t turnMotor2 = 0;
+uint16_t turnMotor3 = 0;
+uint16_t turnMotor4 = 0;
+
+bool banTurnsMotor1 = 0;
+bool banTurnsMotor2 = 0;
+bool banTurnsMotor3 = 0;
+bool banTurnsMotor4 = 0;
+
+uint slice_num_5;
+uint slice_num_6;
+
+
+void tca_select_channel(uint8_t channel){
+    uint8_t data = 1 << channel;
+    i2c_write_blocking(i2c0, TCA_ADDR, &data, 1, false);
+}
+
+int16_t getAngle()
 {
   int16_t raw;
-  readAngleRaw0(&raw);
+  readAngleRaw(&raw);
   return raw * 360 / 0xFFF;
 }
 
-int16_t getAngle1()
-{
-  int16_t raw;
-  readAngleRaw1(&raw);
-  return raw * 360 / 0xFFF;
-}
 
 int16_t angleSubtraction(int16_t angle, int16_t angleOffset)
 {
@@ -59,132 +74,177 @@ int16_t angleSubtraction(int16_t angle, int16_t angleOffset)
     return angleSub;
   }
 }
-
-void turnsToDistance0()
-{
-  distance0 = turns0 * perimeter;
+bool timer_callback(repeating_timer_t *t){
+  tca_select_channel(0);
+  angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
+  tca_select_channel(1);
+  angleMotor2 = angleSubtraction(getAngle(),offsetAngleMotor2);
+  tca_select_channel(2);
+  angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
+  tca_select_channel(3);
+  angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
+  return true;
+}
+float turnsToDistance(uint16_t *turnMotor){
+  return *turnMotor * circunference;
 }
 
-void turnsToDistance1()
-{
-  distance1 = turns1 * perimeter;
-}
+void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, float *distanceMotor){
 
-void distanceRobotForward0()
-{
-  int16_t angle = getAngle0();
-  // printf("Angulo0 %d\n", angle);
-  if (angleSubtraction(angle, angleOffset0) >= 350 && banTurns0)
-  {
-    turns0++;
-    banTurns0 = false;
+  if (angleMotor >= 350 && *banTurnsMotor){
+    (*turnMotor)++;
+    *banTurnsMotor = false;
   }
-  else if (angleSubtraction(angle, angleOffset0) <= 20)
-  {
-    banTurns0 = true;
+  else if (angleMotor <= 20){
+    *banTurnsMotor = true;
   }
-  turnsToDistance0();
-  printf("Vueltas0: %d, Angulo0: %d\n", turns0, angleSubtraction(angle, angleOffset0));
+  *distanceMotor = (*turnMotor)*circunference;
 }
 
-void distanceRobotForward1()
-{
-  int16_t angle = getAngle1();
-  // printf("Angulo1 %d ", angle);
-  if (angleSubtraction(angle, angleOffset1) >= 350 && banTurns1)
-  {
-    turns1++;
-    banTurns1 = false;
-  }
-  else if (angleSubtraction(angle, angleOffset1) <= 20)
-  {
-    banTurns0 = true;
-  }
-  turnsToDistance1();
-  printf("Vueltas1: %d, Angulo1: %d\n", turns1, angleSubtraction(angle, angleOffset1));
-}
+void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, float *distanceMotor){
 
-void timer_callback(repeating_timer_t *rt)
-{
-  gpio_put(S0, sel);
-  if(sel == 0) sel = 1;
-  Sig_out
+  if (angleMotor >= 350){
+    *banTurnsMotor = true;
+  }
+  else if (angleMotor <= 20  && *banTurnsMotor ){
+    (*turnMotor)++;
 
+    *banTurnsMotor = false;
+  }
+  *distanceMotor = (*turnMotor)*circunference;
 
 }
 
-int main()
-{
+void getOffsets(){
+  tca_select_channel(0);
+  offsetAngleMotor1 = getAngle();
+  tca_select_channel(1);
+  offsetAngleMotor2 = getAngle();
+  tca_select_channel(2);
+  offsetAngleMotor3 = getAngle(); 
+  tca_select_channel(3);
+  offsetAngleMotor4 = getAngle();
+}
 
-  stdio_init_all();
-  // Inicializar el bus I2C en Raspberry Pi Pico
-  i2c_init(AS560_i2c0, 200000); // Velocidad de 200 kHz
-  // i2c_init(AS560_i2c1, 200000); // Velocidad de 200 kHz
-  //  Configura un temporizador para 1 segundo
-  uint32_t timer_interval_us = 2050; // microsegundos
-  repeating_timer_t my_timer;
-  add_repeating_timer_us(timer_interval_us, timer_callback, NULL, &my_timer);
-
+void initMotor(){
   gpio_set_function(PWM_PIN1, GPIO_FUNC_PWM);
   gpio_set_function(PWM_PIN2, GPIO_FUNC_PWM);
-  gpio_set_function(SDA, GPIO_FUNC_I2C);  // GPIO0 como SDA
-  gpio_set_function(SCL, GPIO_FUNC_I2C);  // GPIO1 como SCL
-  gpio_set_function(SDA1, GPIO_FUNC_I2C); // GPIO0 como SDA
-  gpio_set_function(SCL1, GPIO_FUNC_I2C); // GPIO1 como SCL
+  gpio_set_function(PWM_PIN3, GPIO_FUNC_PWM);
+  gpio_set_function(PWM_PIN4, GPIO_FUNC_PWM);
 
-  gpio_set_function(S0, GPIO_FUNC_SIO); // GPIO como
-  gpio_set_function(S1, GPIO_FUNC_SIO); // GPIO como SCL
-  gpio_set_function(S2, GPIO_FUNC_SIO); // GPIO como SDA
-  gpio_set_function(S3, GPIO_FUNC_SIO); // GPIO como SCL
 
-  gpio_set_dir(S0, GPIO_IN);
-  gpio_set_dir(S1, GPIO_IN);
-  gpio_set_dir(S2, GPIO_IN);
-  gpio_set_dir(S3, GPIO_IN);
-
-  gpio_pull_up(SDA);
-  gpio_pull_up(SCL);
-  gpio_pull_up(SDA1);
-  gpio_pull_up(SCL1);
-
-  uint slice_num_5 = pwm_gpio_to_slice_num(PWM_PIN1); // Find out which PWM slice is connected to GPIO
-  pwm_set_clkdiv(slice_num_5, 250.0f);                // Set clock freq at 500kHz
-  pwm_set_wrap(slice_num_5, 10000);                   // Set period of 50Hz (20 ms)
-  // pwm_set_phase_correct (slice_num, false); IT SEEMS THAT IS NOT NECESSARY
+  slice_num_5 = pwm_gpio_to_slice_num(PWM_PIN1); // Find out which PWM slice is connected to GPIO
+  pwm_set_clkdiv(slice_num_5, 250.0f); // Set clock freq at 500kHz
+  pwm_set_wrap(slice_num_5, 10000);    // Set period of 50Hz (20 ms)
   pwm_set_enabled(slice_num_5, true); // Set the PWM running
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 650);
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 650);
+
+  slice_num_6 = pwm_gpio_to_slice_num (PWM_PIN3); // Find out which PWM slice is connected to GPIO 
+  pwm_set_clkdiv (slice_num_6, 250.0f); // Set clock freq at 500kHz
+  pwm_set_wrap(slice_num_6, 10000); // Set period of 50Hz (20 ms)
+  pwm_set_enabled(slice_num_6, true); // Set the PWM running  
+
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 650); 
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 650); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 650); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 650); 
   sleep_ms(3000);
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 750);
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);  
   sleep_ms(3000);
+}
 
-  angleOffset0 = getAngle0();
-  angleOffset1 = getAngle1();
+void motorCounterClockWise1(){
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 780);
+}
+void motorClockWise1(){
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 700);
+}
+void motorCounterClockWise2(){
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 780);
+}
+void motorClockWise2(){
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 700);
+}
 
-  gpio_put(S0, 0);
-  gpio_put(S1, 0);
-  gpio_put(S2, 0);
-  gpio_put(S3, 0);
+void motorCounterClockWise3(){
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 700);
 
-  while (1)
-  {
-    pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 780);
-    pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 780);
+}
+void motorClockWise3(){
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 800);
+}
 
-    // printf("Distancia1 %f, Distancia2 %f\n",distance0,distance1);
+void motorCounterClockWise4(){
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 780);
+}
 
-    // if (distance0 >= finalDistance){
-    //   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 750);
-    //   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750);
-    //   angleOffset0 = angleSubtraction(getAngle0(), angleOffset0);
-    //   angleOffset1 = angleSubtraction(getAngle0(), angleOffset1);
-    //   turns0 = 0;
-    //   distance0 = 0;
-    //   turns1 = 0;
-    //   distance1 = 0;
+void motorClockWise4(){
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 700);
+}
+
+void motorStop(){
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 750);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
+}
+void rotation(float rotationAngle){
+  if(rotationAngle > 0){
+    motorClockWise1();
+    motorClockWise2();
+    motorClockWise3();
+    motorClockWise4();
+    distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
+    distanceRobotClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
+    distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
+    distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
+    
+    float angleMotors1 = distanceMotor1/radio;
+    float angleMotors2 = distanceMotor2/radio;
+    float angleMotors3 = distanceMotor3/radio;
+    float angleMotors4 = distanceMotor4/radio;
+
+    if(angleMotors1*180/PI >=rotationAngle || angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle || angleMotors4*180/PI >=rotationAngle){
+      motorStop();
+      sleep_ms(10000);
+    }
+    // if(angleMotors2*180/PI >=rotationAngle){
+    //   motorStop();
     //   sleep_ms(10000);
     // }
+    // if(angleMotors3*180/PI >=rotationAngle){
+    //   motorStop();
+    //   sleep_ms(10000);
+    // }
+    // if(angleMotors4*180/PI >=rotationAngle){
+    //   motorStop();
+    //   sleep_ms(10000);
+    // }
+
   }
+
+}   
+int main(){
+  stdio_init_all();
+
+  static repeating_timer_t timer;
+
+  i2c_init(AS560_i2c,400000);
+  gpio_set_function(SIG_SDA,GPIO_FUNC_I2C);
+  gpio_set_function(SCL,GPIO_FUNC_I2C);
+  gpio_pull_up(SIG_SDA);
+  gpio_pull_up(SCL);
+
+  getOffsets();
+  initMotor();
+  add_repeating_timer_us(2000,&timer_callback,NULL,&timer);
+
+  while (1){
+    rotation(90);
+    //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
+  }
+
   return 0;
-}
+}                       
