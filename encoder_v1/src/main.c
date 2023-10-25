@@ -25,10 +25,10 @@ uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
 uint16_t angleMotor4 = 0;
 
-float distanceMotor1=0;
-float distanceMotor2=0;
-float distanceMotor3=0;
-float distanceMotor4=0;
+double distanceMotor1=0;
+double distanceMotor2=0;
+double distanceMotor3=0;
+double distanceMotor4=0;
 
 uint16_t offsetAngleMotor1 = 0;
 uint16_t offsetAngleMotor2 = 0;
@@ -94,11 +94,11 @@ bool timer_callback(repeating_timer_t *t){
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   return true;
 }
-float turnsToDistance(uint16_t *turnMotor){
+double turnsToDistance(uint16_t *turnMotor){
   return *turnMotor * circunference;
 }
 
-void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, float *distanceMotor){
+void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor){
 
   if (angleMotor >= 350 && *banTurnsMotor){
     (*turnMotor)++;
@@ -110,7 +110,7 @@ void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool 
   *distanceMotor = (*turnMotor)*circunference;
 }
 
-void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, float *distanceMotor){
+void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor){
 
   if (angleMotor >= 350){
     *banTurnsMotor = true;
@@ -199,7 +199,7 @@ void motorStop(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
 }
-void rotation(float rotationAngle){
+void rotation(double rotationAngle){
   if(rotationAngle > 0){
     motorClockWise1();
     motorClockWise2();
@@ -210,10 +210,10 @@ void rotation(float rotationAngle){
     distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
     distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
     
-    float angleMotors1 = distanceMotor1/radio;
-    float angleMotors2 = distanceMotor2/radio;
-    float angleMotors3 = distanceMotor3/radio;
-    float angleMotors4 = distanceMotor4/radio;
+    double angleMotors1 = distanceMotor1/radio;
+    double angleMotors2 = distanceMotor2/radio;
+    double angleMotors3 = distanceMotor3/radio;
+    double angleMotors4 = distanceMotor4/radio;
     printf("%f\n",angleMotors2*180/PI);
     if(angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle ){
       motorStop();
@@ -235,7 +235,7 @@ void rotation(float rotationAngle){
   }
 }  
 
-void moveForward(float distance){
+void moveForward(double distance){
   if (distance > 0){
     motorClockWise1();
     motorCounterClockWise2();
@@ -246,10 +246,10 @@ void moveForward(float distance){
     distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
     distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
 
-    float posx1 = distanceMotor1*cos(45*PI/180);
-    float posx2 = distanceMotor2*cos(45*PI/180);
+    double posx1 = distanceMotor1*cos(45*PI/180);
+    double posx2 = distanceMotor2*cos(45*PI/180);
 
-    float finalPos = (posx1 + posx2)/2;
+    double finalPos = (posx1 + posx2)/2;
     printf("Final pos %f\n",finalPos);
     if (finalPos >= distance){
       motorStop();
@@ -271,10 +271,18 @@ int main(){
 
   getOffsets();
   initMotor();
-  add_repeating_timer_us(2000,&timer_callback,NULL,&timer);
+  //add_repeating_timer_us(2000,&timer_callback,NULL,&timer);
 
   while (1){
-    rotation(90);
+    tca_select_channel(0);
+    angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
+    tca_select_channel(1);
+    angleMotor2 = angleSubtraction(getAngle(),offsetAngleMotor2);
+    tca_select_channel(2);
+    angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
+    tca_select_channel(3);
+    angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
+    moveForward(1);
     //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
     //moveForward(0.3); // distancia en m
     //motorClockWise3();
