@@ -9,7 +9,7 @@
 
 #define SIG_SDA 0
 #define SCL 1
-#define circunference 0.037698
+#define circunference 0.037698 // en metros
 #define radio 0.0925
 #define PI 3.14159265358979323846
 #define TCA_ADDR 0x70 
@@ -48,6 +48,15 @@ bool banTurnsMotor4 = 0;
 uint slice_num_5;
 uint slice_num_6;
 
+uint16_t offCC1 = 777;
+uint16_t offCW1 = 723;
+uint16_t offCC2 = 780;
+uint16_t offCW2 = 720;
+uint16_t offCC3 = 700;
+uint16_t offCW3 = 800;
+uint16_t offCC4 = 800;
+uint16_t offCW4 = 700;
+int16_t offset = -5;  // positivo si quiero que incremente velocidad
 
 void tca_select_channel(uint8_t channel){
     uint8_t data = 1 << channel;
@@ -156,32 +165,32 @@ void initMotor(){
 }
 
 void motorCounterClockWise1(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 780);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset); // 777
 }
 void motorClockWise1(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 700);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 - offset); // 723
 }
 void motorCounterClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 780);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset); // 780
 }
 void motorClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 700);
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 - offset); // 720
 }
 
 void motorCounterClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 700);
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCC3 - offset); //700
 
 }
 void motorClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 800);
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset); // 800
 }
 
 void motorCounterClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 780);
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset); // 800
 }
 
 void motorClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 700);
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 - offset); // 700
 }
 
 void motorStop(){
@@ -205,8 +214,8 @@ void rotation(float rotationAngle){
     float angleMotors2 = distanceMotor2/radio;
     float angleMotors3 = distanceMotor3/radio;
     float angleMotors4 = distanceMotor4/radio;
-
-    if(angleMotors1*180/PI >=rotationAngle || angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle || angleMotors4*180/PI >=rotationAngle){
+    printf("%f\n",angleMotors2*180/PI);
+    if(angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle ){
       motorStop();
       sleep_ms(10000);
     }
@@ -224,8 +233,31 @@ void rotation(float rotationAngle){
     // }
 
   }
+}  
 
-}   
+void moveForward(float distance){
+  if (distance > 0){
+    motorClockWise1();
+    motorCounterClockWise2();
+    motorClockWise3();
+    motorCounterClockWise4();
+    distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
+    distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
+    distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
+    distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
+
+    float posx1 = distanceMotor1*cos(45*PI/180);
+    float posx2 = distanceMotor2*cos(45*PI/180);
+
+    float finalPos = (posx1 + posx2)/2;
+    printf("Final pos %f\n",finalPos);
+    if (finalPos >= distance){
+      motorStop();
+      sleep_ms(10000);
+    }
+  }
+}
+
 int main(){
   stdio_init_all();
 
@@ -244,6 +276,8 @@ int main(){
   while (1){
     rotation(90);
     //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
+    //moveForward(0.3); // distancia en m
+    //motorClockWise3();
   }
 
   return 0;
