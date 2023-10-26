@@ -84,7 +84,8 @@ static void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
     UNUSED(channel);
     UNUSED(size);
 
-    if (packet_type != HCI_EVENT_PACKET) return;
+    if (packet_type != HCI_EVENT_PACKET) return
+    ;
 
     switch (hci_event_packet_get_type(packet)) {
         case HCI_EVENT_DISCONNECTION_COMPLETE:
@@ -113,19 +114,62 @@ static void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uin
             }
             break;
         case RFCOMM_DATA_PACKET:
-           switch(packet[0]) {
-			   case 0x73: stop();         break; // 's'
-			   case 0x66: forward();      break; // 'f'
-			   case 0x62: reverse();      break; // 'b'
-			   case 0x6c: forward_left(); break; // 'l'
-			   case 0x72: forward_right();break; // 'r'
-               default: 
-                        printf("Recibe: ");
-                        // printf_hexdump(packet, size);
-                        printf("%.*s\n", size, packet);
+            printf("%.*s\n", packet);
+            char outputBuffer[256];  // Búfer para almacenar la salida
+            char* lista[10];
+            // Utiliza snprintf para formatear la cadena y guardarla en outputBuffer
+            snprintf(outputBuffer, sizeof(outputBuffer), "%.*s\n", (int)size, (char*)packet);
 
+            //printf("Salida capturada: %s", outputBuffer); // Imprime la salida capturada
+                // Divide la cadena en tokens separados por comas
+            char* token = strtok(outputBuffer, ",");
+            int i = 0;
+            while (token != NULL) {
+                lista[i] = token;
+                token = strtok(NULL, ",");
+                i++;
             }
-            break;
+            
+            // Imprime los valores separados por comas
+            for (int j = 0; j < i; j++) {
+                printf("Elemento %d: %s\n", j, lista[j]);
+            }
+
+            if (lista[0][0] == 'G') {
+                float angulo = atof(lista[1]);
+                uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
+                sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
+                printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
+            }
+
+            else
+            {
+                float valor = atof(lista[1]);
+                uint8_t mono[20];
+                sprintf(mono, "%s", lista[0]);
+                printf("Estoy sisas: %f, %s\n", valor, mono);
+            }
+            
+
+
+
+
+            
+        //    switch(packet[0]) {
+		// 	   case 0x73: printf_hexdump(packet, size);         break; // 's'
+		// 	   case 0x66: printf_hexdump(packet, size);      break; // 'f'
+		// 	   case 0x62: printf_hexdump(packet, size);      break; // 'b'
+		// 	   case 0x6c: printf_hexdump(packet, size); break; // 'l'
+		// 	   case 0x72: printf_hexdump(packet, size);break; // 'r'
+        //        default: 
+
+        //                 printf("Recibe: ");
+        //                 // printf_hexdump(packet, size);
+        //                 printf("%.*s\n", size, packet);
+
+
+        //     }
+        //     break;
         default:
             break;
     }
