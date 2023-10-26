@@ -56,7 +56,22 @@ uint16_t offCC3 = 700;
 uint16_t offCW3 = 800;
 uint16_t offCC4 = 800;
 uint16_t offCW4 = 700;
-int16_t offset = -11;  // positivo si quiero que incremente velocidad
+int16_t offset1 = 11;  // positivo si quiero que incremente velocidad
+int16_t offset2 = 11;  // positivo si quiero que incremente velocidad
+int16_t offset3 = 11;  // positivo si quiero que incremente velocidad
+int16_t offset4 = 11;  // positivo si quiero que incremente velocidad
+
+// Coeficientes del controlador PID
+double Kp = 0.1; // Coeficiente proporcional
+double Ki = 0.05; // Coeficiente integral
+double Kd = 0.01; // Coeficiente derivativo
+
+// Variables para almacenar errores acumulados y error anterior
+double integralError1_4 = 0;
+double integralError2_3 = 0;
+double previousError1_4 = 0;
+double previousError2_3 = 0;
+
 
 void tca_select_channel(uint8_t channel){
     uint8_t data = 1 << channel;
@@ -165,32 +180,32 @@ void initMotor(){
 }
 
 void motorCounterClockWise1(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset); // 777
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 - offset1); // 777
 }
 void motorClockWise1(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 - offset); // 723
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
 }
 void motorCounterClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset); // 780
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 - offset2); // 780
 }
 void motorClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 - offset); // 720
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
 }
 
 void motorCounterClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCC3 - offset); //700
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCC3 + offset3); //700
 
 }
 void motorClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset); // 800
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 - offset3); // 800
 }
 
 void motorCounterClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset); // 800
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 - offset4); // 800
 }
 
 void motorClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 - offset); // 700
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 + offset4); // 700
 }
 
 void motorStop(){
@@ -218,9 +233,9 @@ void rotation(double rotationAngle){
     printf("Tres %f\n",angleMotors3*180/PI);
     
     if(angleMotor2-angleMotor3 < 0){
-      pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 - offset - 3); // 720
+      pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2 - 3); // 720
     }else if (angleMotor2-angleMotor3 > 0){
-      pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset + 3); // 800
+      pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 - offset3 + 3); // 800
     }
 
     if(angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle ){
@@ -242,6 +257,25 @@ void rotation(double rotationAngle){
 
   }
 }  
+void adjustMotorSpeed(uint motorNumber, double adjustment) {
+ switch (motorNumber){
+ case 1:
+  offset1+=adjustment;
+  break;
+ case 2:
+  offset2+=adjustment;
+  break;
+ case 3:
+  offset3+=adjustment;
+  break;
+ case 4:
+  offset4+=adjustment;
+  break; 
+ default:
+  break;
+ }
+}
+
 
 void moveForward(double distance){
   if (distance > 0){
@@ -254,8 +288,38 @@ void moveForward(double distance){
     distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
     distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
 
-    double posx1 = distanceMotor1*cos(45*PI/180);
-    double posx2 = distanceMotor2*cos(45*PI/180);
+    double error1_4 = distanceMotor1 - distanceMotor4;
+    double error2_3 = distanceMotor2 - distanceMotor3;
+
+    double pidAdjustment1_4 = Kp * error1_4 + Kd * (error1_4 - previousError1_4);
+    double pidAdjustment2_3 = Kp * error2_3 + Kd * (error2_3 - previousError2_3);
+    printf("adj1 %lf ",pidAdjustment1_4);
+    printf("error1_4 %lf ",error1_4);
+    printf("error2_3 %lf ",error2_3);
+    printf("adj2 %lf\n",pidAdjustment2_3);
+
+
+    previousError1_4 = error1_4;
+    previousError2_3 = error2_3;
+    if(error1_4 > 0){
+      adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
+    }else{
+
+      adjustMotorSpeed(4, -pidAdjustment1_4);   // Aumentar la velocidad del motor 4 si el error es positivo
+    }
+    if(error2_3 > 0){
+
+    adjustMotorSpeed(2, -pidAdjustment2_3);  // Reducir la velocidad del motor 2 si el error es positivo
+    }else{
+
+    adjustMotorSpeed(3, pidAdjustment2_3);   // Aumentar la velocidad del motor 3 si el error es positivo
+    }
+
+    
+
+
+    double posx1 = (distanceMotor1+distanceMotor4)*cos(45*PI/180)/2;
+    double posx2 = (distanceMotor2+distanceMotor3)*cos(45*PI/180)/2;
 
     double finalPos = (posx1 + posx2)/2;
     printf("Final pos %f\n",finalPos);
@@ -290,7 +354,7 @@ int main(){
     angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
     tca_select_channel(3);
     angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-    rotation(90);
+    moveForward(1);
     //moveForward(1);
     //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
     //moveForward(0.3); // distancia en m
