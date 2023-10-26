@@ -48,18 +48,18 @@ bool banTurnsMotor4 = 0;
 uint slice_num_5;
 uint slice_num_6;
 
-uint16_t offCC1 = 777;
-uint16_t offCW1 = 723;
+uint16_t offCC1 = 780;
+uint16_t offCW1 = 720;
 uint16_t offCC2 = 780;
 uint16_t offCW2 = 720;
-uint16_t offCC3 = 700;
-uint16_t offCW3 = 800;
-uint16_t offCC4 = 800;
-uint16_t offCW4 = 700;
-int16_t offset1 = 11;  // positivo si quiero que incremente velocidad
-int16_t offset2 = 11;  // positivo si quiero que incremente velocidad
-int16_t offset3 = 11;  // positivo si quiero que incremente velocidad
-int16_t offset4 = 11;  // positivo si quiero que incremente velocidad
+uint16_t offCC3 = 720;
+uint16_t offCW3 = 780;
+uint16_t offCC4 = 780;
+uint16_t offCW4 = 720;
+int16_t offset1 = 0;  // positivo si quiero que incremente velocidad
+int16_t offset2 = 0;  // positivo si quiero que incremente velocidad
+int16_t offset3 = 0;  // positivo si quiero que incremente velocidad
+int16_t offset4 = 0;  // positivo si quiero que incremente velocidad
 
 // Coeficientes del controlador PID
 double Kp = 0.1; // Coeficiente proporcional
@@ -180,13 +180,13 @@ void initMotor(){
 }
 
 void motorCounterClockWise1(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 - offset1); // 777
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
 }
 void motorCounterClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 - offset2); // 780
+  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
 }
 void motorClockWise2(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
@@ -197,11 +197,11 @@ void motorCounterClockWise3(){
 
 }
 void motorClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 - offset3); // 800
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 800
 }
 
 void motorCounterClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 - offset4); // 800
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); // 800
 }
 
 void motorClockWise4(){
@@ -302,7 +302,7 @@ void moveForward(double distance){
     previousError1_4 = error1_4;
     previousError2_3 = error2_3;
     if(error1_4 > 0){
-      adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
+      adjustMotorSpeed(1, -pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
     }else{
 
       adjustMotorSpeed(4, -pidAdjustment1_4);   // Aumentar la velocidad del motor 4 si el error es positivo
