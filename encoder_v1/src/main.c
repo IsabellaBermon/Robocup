@@ -56,7 +56,7 @@ uint16_t offCC3 = 700;
 uint16_t offCW3 = 800;
 uint16_t offCC4 = 800;
 uint16_t offCW4 = 700;
-int16_t offset = -5;  // positivo si quiero que incremente velocidad
+int16_t offset = -11;  // positivo si quiero que incremente velocidad
 
 void tca_select_channel(uint8_t channel){
     uint8_t data = 1 << channel;
@@ -214,7 +214,15 @@ void rotation(double rotationAngle){
     double angleMotors2 = distanceMotor2/radio;
     double angleMotors3 = distanceMotor3/radio;
     double angleMotors4 = distanceMotor4/radio;
-    printf("%f\n",angleMotors2*180/PI);
+    printf("Dos %f ",angleMotors2*180/PI);
+    printf("Tres %f\n",angleMotors3*180/PI);
+    
+    if(angleMotor2-angleMotor3 < 0){
+      pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 - offset - 3); // 720
+    }else if (angleMotor2-angleMotor3 > 0){
+      pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset + 3); // 800
+    }
+
     if(angleMotors2*180/PI >=rotationAngle || angleMotors3*180/PI >=rotationAngle ){
       motorStop();
       sleep_ms(10000);
@@ -271,7 +279,7 @@ int main(){
 
   getOffsets();
   initMotor();
-  //add_repeating_timer_us(2000,&timer_callback,NULL,&timer);
+  //add_repeating_timer_us(200,&timer_callback,NULL,&timer);
 
   while (1){
     tca_select_channel(0);
@@ -282,7 +290,8 @@ int main(){
     angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
     tca_select_channel(3);
     angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-    moveForward(1);
+    rotation(90);
+    //moveForward(1);
     //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
     //moveForward(0.3); // distancia en m
     //motorClockWise3();
