@@ -24,6 +24,8 @@ bool banTurnsMotor1 = 0;
 bool banTurnsMotor2 = 0;
 bool banTurnsMotor3 = 0;
 bool banTurnsMotor4 = 0;
+bool banStop = false;
+
 
 
 void motorCounterClockWise1(){
@@ -46,7 +48,7 @@ void motorClockWise3(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
 }
 void motorCounterClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+10); // 780
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+10); 
 }
 void motorClockWise4(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 + offset4); // 720
@@ -104,16 +106,20 @@ void rotation(double rotationAngle){
     printf(" angle %lf \n",angleFinal);
     if(angleFinal*180/PI >=rotationAngle-10){
       motorStop();
-      sleep_ms(5000);
       restartControl();
       restartMovement();
       getOffsets();
+      banStop=true;
     }
   
 
   }
 }
 void moveForward(double distance){
+  offCW1 = 720;
+  offCW2 = 720;
+  offCW3 = 780;
+  offCW4 = 720;
   if (distance > 0){
     motorsForward();
     distanceMotorsForward();
@@ -127,7 +133,11 @@ void moveForward(double distance){
     // printf("Final pos %f\n",finalPos);
     if (finalPos >= distance){
       motorStop();
-      sleep_ms(10000);
+      restartControl();
+      restartMovement();
+      getOffsets();
+      banStop=true;
+
     }
   }
 }

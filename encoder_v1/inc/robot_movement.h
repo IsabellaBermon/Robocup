@@ -28,11 +28,12 @@ extern uint16_t turnMotor2;
 extern uint16_t turnMotor3;
 extern uint16_t turnMotor4;
 
-extern bool banTurnsMotor1 ;
-extern bool banTurnsMotor2 ;
-extern bool banTurnsMotor3 ;
-extern bool banTurnsMotor4 ;
+extern bool banTurnsMotor1;
+extern bool banTurnsMotor2;
+extern bool banTurnsMotor3;
+extern bool banTurnsMotor4;
 
+extern bool banStop;
 // Coeficientes del controlador PID
 
 

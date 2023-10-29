@@ -1,8 +1,15 @@
 #include "bt_functions.h"
-
+#include "mygatt.h"
 hci_con_handle_t con_handle = HCI_CON_HANDLE_INVALID;
 btstack_context_callback_registration_t send_request;
 btstack_packet_callback_registration_t  hci_event_callback_registration;
+
+
+double angleBt = 0;
+double distanceBt = 0;
+bool btAvailable = true;
+bool banAngle = false;
+bool banDistance = false;
 
 const uint8_t adv_data[] = {
     // Flags general discoverable, BR/EDR not supported
@@ -13,6 +20,32 @@ const uint8_t adv_data[] = {
     17, BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_128_BIT_SERVICE_CLASS_UUIDS, 0x9e, 0xca, 0xdc, 0x24, 0xe, 0xe5, 0xa9, 0xe0, 0x93, 0xf3, 0xa3, 0xb5, 0x1, 0x0, 0x40, 0x6e,
 };
 const uint8_t adv_data_len = sizeof(adv_data);
+
+
+void initBluetooth(){
+  if (cyw43_arch_init()) {
+    printf("failed to initialise cyw43_arch\n");
+  }
+
+  hci_event_callback_registration.callback = &hci_packet_handler;
+  hci_add_event_handler(&hci_event_callback_registration);
+  l2cap_init();
+  sm_init();
+  att_server_init(profile_data, NULL, NULL);
+  nordic_spp_service_server_init(&nordic_spp_packet_handler);
+  uint16_t adv_int_min = 0x0030;
+  uint16_t adv_int_max = 0x0030;
+  uint8_t adv_type = 0;
+  bd_addr_t null_addr;
+  memset(null_addr, 0, 6);
+  gap_advertisements_set_params(adv_int_min, adv_int_max, adv_type, 0, null_addr, 0x07, 0x00);
+  gap_advertisements_set_data(adv_data_len, (uint8_t*) adv_data);
+  gap_advertisements_enable(1);
+  hci_power_control(HCI_POWER_ON);
+  //btstack_run_loop_execute();
+
+}
+
 
 void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     UNUSED(channel);
@@ -52,36 +85,36 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
       char* lista[10];
       // Utiliza snprintf para formatear la cadena y guardarla en outputBuffer
       snprintf(outputBuffer, sizeof(outputBuffer), "%.*s\n", (int)size, (char*)packet);
-
-      //printf("Salida capturada: %s", outputBuffer); // Imprime la salida capturada
-          // Divide la cadena en tokens separados por comas
+      // Divide la cadena en tokens separados por comas
       char* token = strtok(outputBuffer, ",");
       int i = 0;
-      while (token != NULL) {
-          lista[i] = token;
-          token = strtok(NULL, ",");
-          i++;
+      while (token != NULL){
+        lista[i] = token;
+        token = strtok(NULL, ",");
+        i++;
       }
-        
-      // Imprime los valores separados por comas
-      for (int j = 0; j < i; j++) {
-          printf("Elemento %d: %s\n", j, lista[j]);
-      }
+      if(btAvailable){
+        if (*lista[0] == 'G') {
+          angleBt = atof(lista[1]);
+          banAngle = true;
+          printf("entro G\n");
+          // uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
+          // sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
+          // printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
+        }else if(*lista[0] == 'D'){
+          distanceBt = atof(lista[1]);
+          banDistance = true;
+          printf("entro D\n");
 
-      if (lista[0][0] == 'G') {
-          float angulo = atof(lista[1]);
-          uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
-          sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
-          printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
+        }else{
+            float valor = atof(lista[1]);
+            uint8_t mono[20];
+            sprintf(mono, "%s", lista[0]);
+            printf("Estoy sisas: %f, %s\n", valor, mono);
+        }    
+        btAvailable = false; 
       }
-
-      else
-      {
-          float valor = atof(lista[1]);
-          uint8_t mono[20];
-          sprintf(mono, "%s", lista[0]);
-          printf("Estoy sisas: %f, %s\n", valor, mono);
-      }     
+      
     default:
         break;
   }
