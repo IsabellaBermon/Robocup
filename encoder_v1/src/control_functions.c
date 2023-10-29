@@ -23,9 +23,9 @@ double Kd_d = 0.02; // Coeficiente derivativo
 double Kp = 0.15; // Coeficiente proporcional
 double Ki = 0.05; // Coeficiente integral
 double Kd = 0.1; // Coeficiente derivativo
-double Kp_r= 0.15; // Coeficiente proporcional
-double Ki_r = 0.00001; // Coeficiente integral
-double Kd_r = 0.02; // Coeficiente derivativo
+double Kp_r= 0.6; // Coeficiente proporcional
+double Ki_r = 0.00022; // Coeficiente integral
+double Kd_r = 0.1; // Coeficiente derivativo
 double integralError_pair = 0;
 double previousError_pair = 0;
 double Kp_pair = 1; // Coeficiente proporcional
@@ -157,7 +157,7 @@ void motorsPIControlPosition(double error){
   }
 }
 
-void anglesPControlRotation(double errorAngle){
+void anglesPIDControlRotation(double errorAngle){
   double adjustmentAngle = 0.4*errorAngle +0.000005*integralErrorAngle+ 0.005*(errorAngle-previousErrorAngle);
   integralErrorAngle += errorAngle;
   previousErrorAngle = errorAngle;
@@ -172,4 +172,27 @@ void anglesPControlRotation(double errorAngle){
       adjustMotorSpeed(2, adjustmentAngle);  
       adjustMotorSpeed(3, -adjustmentAngle);  
   }
+}
+
+void restartControl(){
+  distanceMotor1 = 0;
+  distanceMotor2 = 0;
+  distanceMotor3 = 0;
+  distanceMotor4 = 0;
+  motorAngle1=0;
+  motorAngle2=0;
+  motorAngle3=0;
+  motorAngle4=0;
+  offset1=0;  
+  offset2=0;  
+  offset3=0;  
+  offset4=0; 
+  integralError1_4 = 0;
+  integralError2_3 = 0;
+  previousError1_4 = 0;
+  previousError2_3 = 0;
+  previousErrorAngle = 0;
+  integralErrorAngle = 0; 
+  previousErrorAngle = 0;
+  integralErrorAngle = 0;
 }

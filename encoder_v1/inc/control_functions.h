@@ -46,5 +46,6 @@ void adjustMotorSpeed(uint motorNumber, double adjustment);
 void dualMotorPIDControl();
 void dualMotorPDControlRotation();
 void motorsPIControlPosition(double error);
-void anglesPControlRotation(double errorAngle);
+void anglesPIDControlRotation(double errorAngle);
+void restartControl();
 #endif

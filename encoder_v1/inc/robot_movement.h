@@ -3,6 +3,7 @@
 
 #include "control_functions.h"
 #include "motor_config.h"
+#include "encoder.h"
 #include <math.h>
 
 #define PI 3.14159265358979323846
@@ -56,5 +57,5 @@ void distanceMotorsForward();
 void distanceMotorsClockWise();
 void rotation(double rotationAngle);
 void moveForward(double distance);
-
+void restartMovement();
 #endif
