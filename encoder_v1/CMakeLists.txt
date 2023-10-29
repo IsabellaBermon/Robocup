@@ -21,7 +21,11 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(encoder_v1 src/main.c
-                        src/encoder.c)
+                        src/encoder.c
+                        src/motor_config.c
+                        src/control_functions.c
+                        src/robot_movement.c
+                        )
 
 pico_set_program_name(encoder_v1 "encoder_v1")
 pico_set_program_version(encoder_v1 "0.1")
