@@ -66,12 +66,18 @@ double Kp = 0.15; // Coeficiente proporcional
 double Ki = 0.05; // Coeficiente integral
 double Kd = 0.1; // Coeficiente derivativo
 
-double Kp_d = 0.1; // Coeficiente proporcional
-double Ki_d = 0.0001; // Coeficiente integral
+double Kp_d = 0.3; // Coeficiente proporcional
+double Ki_d = 0.000001; // Coeficiente integral
 double Kd_d = 0.02; // Coeficiente derivativo
+
+double Kp_pair = 1; // Coeficiente proporcional
+double Ki_pair = 0.000001; // Coeficiente integral
+double Kd_pair = 0; // Coeficiente derivativo
 // Variables para almacenar errores acumulados y error anterior
 double integralError1_4 = 0;
 double integralError2_3 = 0;
+double integralError_pair = 0;
+double previousError_pair = 0;
 double previousError1_4 = 0;
 double previousError2_3 = 0;
 
@@ -87,7 +93,6 @@ int16_t getAngle()
   readAngleRaw(&raw);
   return raw * 360 / 0xFFF;
 }
-
 
 int16_t angleSubtraction(int16_t angle, int16_t angleOffset)
 {
@@ -204,7 +209,7 @@ void motorClockWise3(){
 }
 
 void motorCounterClockWise4(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); // 780
+  pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+10); // 780
 }
 
 void motorClockWise4(){
@@ -282,48 +287,72 @@ void rotation(double rotationAngle){
 
   }
 }
+void motorsForward(){
+  motorClockWise1();
+  motorCounterClockWise2();
+  motorClockWise3();
+  motorCounterClockWise4();
+}
+void distanceMotorsForward(){
+  distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
+  distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
+  distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
+  distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
+}
+void dualMotorPIDControl(){
+  double error1_4 = (distanceMotor1 - distanceMotor4);
+  double error2_3 = (distanceMotor2 - distanceMotor3);
+  double pidAdjustment1_4 = Kp_d * error1_4 + Ki_d*integralError1_4 + Kd_d * (error1_4 - previousError1_4);
+  double pidAdjustment2_3 = Kp_d * error2_3 + Ki_d*integralError2_3 + Kd_d* (error2_3 - previousError2_3);
+  
+  integralError1_4 += error1_4;
+  integralError2_3 += error2_3;
+  
+  // printf("adj1 %lf ,",pidAdjustment1_4);
+  // printf("error1_4 %lf ,",error1_4);
+  // printf("error2_3 %lf ,",error2_3);
+  // printf("adj2 %lf\n",pidAdjustment2_3);
+  previousError1_4 = error1_4;
+  previousError2_3 = error2_3;
+  if(error1_4 > 0){
+    adjustMotorSpeed(1, pidAdjustment1_4);  
+  }else{
 
+    adjustMotorSpeed(4, -pidAdjustment1_4);  
+  }
+  if(error2_3 > 0){
 
+  adjustMotorSpeed(2, -pidAdjustment2_3);  
+  }else{
+
+  adjustMotorSpeed(3, -pidAdjustment2_3); 
+  }
+}
 void moveForward(double distance){
   if (distance > 0){
-    motorClockWise1();
-    motorCounterClockWise2();
-    motorClockWise3();
-    motorCounterClockWise4();
-    distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
-    distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
-    distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
-    distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
-    double error1_4 = (distanceMotor1 - distanceMotor4);
-    double error2_3 = (distanceMotor2 - distanceMotor3);
-    double pidAdjustment1_4 = Kp_d * error1_4 + Ki_d*integralError1_4 + Kd_d * (error1_4 - previousError1_4);
-    double pidAdjustment2_3 = Kp_d * error2_3 + Ki_d*integralError2_3 + Kd_d* (error2_3 - previousError2_3);
-    
-    integralError1_4 += error1_4/10;
-    integralError2_3 += error2_3/10;
-    
-    printf("adj1 %lf ",pidAdjustment1_4);
-    printf("error1_4 %lf ",error1_4);
-    printf("error2_3 %lf ",error2_3);
-    printf("adj2 %lf\n",pidAdjustment2_3);
-    previousError1_4 = error1_4;
-    previousError2_3 = error2_3;
-    if(error1_4 > 0){
-      adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
-    }else{
-
-      adjustMotorSpeed(4, -pidAdjustment1_4);   // Aumentar la velocidad del motor 4 si el error es positivo
-    }
-    if(error2_3 > 0){
-
-    adjustMotorSpeed(2, -pidAdjustment2_3);  // Reducir la velocidad del motor 2 si el error es positivo
-    }else{
-
-    adjustMotorSpeed(3, -pidAdjustment2_3);   // Aumentar la velocidad del motor 3 si el error es positivo
-    }
+    motorsForward();
+    distanceMotorsForward();
+    dualMotorPIDControl();
     double posx1 = (distanceMotor1+distanceMotor4)*cos(45*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(45*PI/180)/2;
+    double errorX1_X2 = posx1-posx2;
+    // Controlador PID para ajustar la velocidad entre los pares de motores
+    double pidAdjustment_pair = Kp_pair * errorX1_X2 + Ki_pair * integralError_pair + Kd_pair * (errorX1_X2 - previousError_pair);
+    integralError_pair += errorX1_X2;
+    previousError_pair = errorX1_X2;
+  printf("adj1 %lf ,",pidAdjustment_pair);
+  printf("error %lf ,",errorX1_X2);
 
+    // Ajuste de la velocidad de los motores basado en el error
+    if (errorX1_X2 > 0) {
+        // Si el error es positivo, reducimos la velocidad de los motores 1 y 4
+        adjustMotorSpeed(1, pidAdjustment_pair);  
+        adjustMotorSpeed(4, -pidAdjustment_pair);  
+    } else {
+        // Si el error es negativo, reducimos la velocidad de los motores 2 y 3
+        adjustMotorSpeed(2, -pidAdjustment_pair);  
+        adjustMotorSpeed(3, -pidAdjustment_pair);  
+    }
     double finalPos = (posx1 + posx2)/2;
     printf("Final pos %f\n",finalPos);
     if (finalPos >= distance){
@@ -359,9 +388,7 @@ int main(){
     angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
     //rotation(360);
     moveForward(1);
-    //pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 800);
-    //moveForward(0.3); // distancia en m
-    //motorClockWise3();
+
   }
 
   return 0;
