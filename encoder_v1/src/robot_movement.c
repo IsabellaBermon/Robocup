@@ -26,8 +26,6 @@ bool banTurnsMotor3 = 0;
 bool banTurnsMotor4 = 0;
 
 
-
-
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
@@ -40,7 +38,6 @@ void motorCounterClockWise2(){
 void motorClockWise2(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
 }
-
 void motorCounterClockWise3(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCC3 + offset3); //700
 
@@ -48,25 +45,18 @@ void motorCounterClockWise3(){
 void motorClockWise3(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
 }
-
 void motorCounterClockWise4(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+10); // 780
 }
-
 void motorClockWise4(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 + offset4); // 720
 }
-
-
 void motorStop(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 750);
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
 }
-
-
-
 void motorsForward(){
   motorClockWise1();
   motorCounterClockWise2();
@@ -79,7 +69,6 @@ void motorsClockWise(){
     motorClockWise3();
     motorClockWise4();
 }
-
 void distanceMotorsForward(){
   distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1);
   distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
@@ -98,12 +87,18 @@ void rotation(double rotationAngle){
     distanceMotorsClockWise();
     
     dualMotorPDControlRotation();
+    motorAngle1 = distanceMotor1/radio;
+    motorAngle2 = distanceMotor2/radio;
+    motorAngle3 = distanceMotor3/radio;
+    motorAngle4 = distanceMotor4/radio;
     double motorAngle1_4 =(motorAngle1 + motorAngle4)/2;
     double motorAngle2_3 = (motorAngle2 + motorAngle3)/2;
     double angleError = motorAngle1_4 - motorAngle2_3;
     anglesPControlRotation(angleError);
+
     double angleFinal = (motorAngle1_4+motorAngle2_3)/2;
 
+    printf("angle %lf \n",angleFinal);
     if(angleFinal*180/PI >=rotationAngle){
       motorStop();
       sleep_ms(10000);

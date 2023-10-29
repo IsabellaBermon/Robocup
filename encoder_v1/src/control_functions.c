@@ -23,7 +23,9 @@ double Kd_d = 0.02; // Coeficiente derivativo
 double Kp = 0.15; // Coeficiente proporcional
 double Ki = 0.05; // Coeficiente integral
 double Kd = 0.1; // Coeficiente derivativo
-
+double Kp_r= 0.15; // Coeficiente proporcional
+double Ki_r = 0.00001; // Coeficiente integral
+double Kd_r = 0.02; // Coeficiente derivativo
 double integralError_pair = 0;
 double previousError_pair = 0;
 double Kp_pair = 1; // Coeficiente proporcional
@@ -31,6 +33,7 @@ double Ki_pair = 0.000001; // Coeficiente integral
 double Kd_pair = 0; // Coeficiente derivativo
 
 double previousErrorAngle = 0;
+double integralErrorAngle = 0;
 
 void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor){
 
@@ -106,18 +109,20 @@ void dualMotorPIDControl(){
 }
 
 void dualMotorPDControlRotation(){
-  motorAngle1 = distanceMotor1/radio;
-  motorAngle2 = distanceMotor2/radio;
-  motorAngle3 = distanceMotor3/radio;
-  motorAngle4 = distanceMotor4/radio;
-  double error1_4 = motorAngle1 - motorAngle4;
-  double error2_3 = motorAngle2 - motorAngle3;
 
-  double pidAdjustment1_4 = Kp * error1_4 + Kd * (error1_4 - previousError1_4);
-  double pidAdjustment2_3 = Kp * error2_3 + Kd * (error2_3 - previousError2_3);
-  
+  double error1_4 = distanceMotor1 - distanceMotor4;
+  double error2_3 = distanceMotor2 - distanceMotor3;
+
+  double pidAdjustment1_4 = (Kp_r) * error1_4 + Ki_r*integralError1_4 + Kd_r * (error1_4 - previousError1_4);
+  double pidAdjustment2_3 = Kp_r * error2_3 + Ki_r*integralError2_3 + Kd_r* (error2_3 - previousError2_3);
+  integralError1_4 += error1_4;
+  integralError2_3 += error2_3;
   previousError1_4 = error1_4;
   previousError2_3 = error2_3;
+  printf("adj1 %lf ,",pidAdjustment1_4);
+  printf("error1_4 %lf ,",error1_4);
+  printf("error2_3 %lf ,",error2_3);
+  printf("adj2 %lf\n",pidAdjustment2_3);
   if(error1_4 > 0){
     adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
   }else{
@@ -153,10 +158,11 @@ void motorsPIControlPosition(double error){
 }
 
 void anglesPControlRotation(double errorAngle){
-  double adjustmentAngle = 0.6*errorAngle + 0.02*(errorAngle-previousErrorAngle);
+  double adjustmentAngle = 0.4*errorAngle +0.000005*integralErrorAngle+ 0.005*(errorAngle-previousErrorAngle);
+  integralErrorAngle += errorAngle;
   previousErrorAngle = errorAngle;
-  printf("adj1 %lf ,",adjustmentAngle);
-  printf("error %lf \n",errorAngle);
+  // printf("adj1 %lf ,",adjustmentAngle);
+  // printf("error %lf ,",errorAngle);
   if (errorAngle > 0) {
       // Si el error es positivo, reducimos la velocidad de los motores 1 y 4
       adjustMotorSpeed(1, adjustmentAngle);  

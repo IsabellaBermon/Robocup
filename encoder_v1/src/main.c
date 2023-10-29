@@ -107,7 +107,7 @@ int main(){
     angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
     tca_select_channel(3);
     angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-    rotation(360);
+    rotation(180);
     //moveForward(1);
 
   }
