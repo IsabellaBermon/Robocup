@@ -82,7 +82,7 @@ void distanceMotorsClockWise(){
     distanceRobotClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2);
     distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3);
     distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4);
-}
+  }
 void rotation(double rotationAngle){
   offCW1 = 728;
   offCW2 = 728;
@@ -92,6 +92,8 @@ void rotation(double rotationAngle){
     motorsClockWise();
     distanceMotorsClockWise();
     dualMotorPDControlRotation();
+    motorsClockWise();
+    distanceMotorsClockWise();
     motorAngle1 = distanceMotor1/radio;
     motorAngle2 = distanceMotor2/radio;
     motorAngle3 = distanceMotor3/radio;
@@ -104,7 +106,7 @@ void rotation(double rotationAngle){
     double angleFinal = (motorAngle1_4+motorAngle2_3)/2;
 
     printf(" angle %lf \n",angleFinal);
-    if(angleFinal*180/PI >=rotationAngle-10){
+    if(angleFinal*180/PI >=rotationAngle-3){
       motorStop();
       restartControl();
       restartMovement();
@@ -116,19 +118,23 @@ void rotation(double rotationAngle){
   }
 }
 void moveForward(double distance){
-  offCW1 = 720;
-  offCW2 = 720;
-  offCW3 = 780;
-  offCW4 = 720;
-  if (distance > 0){
+  offCW1 = 725;
+  offCW2 = 705;
+  offCW3 = 795;
+  offCW4 = 725;
+  if (distance > 0){    
     motorsForward();
     distanceMotorsForward();
     dualMotorPIDControl();
-    double posx1 = (distanceMotor1+distanceMotor4)*cos(45*PI/180)/2;
-    double posx2 = (distanceMotor2+distanceMotor3)*cos(45*PI/180)/2;
+    motorsForward();
+    distanceMotorsForward();
+
+    double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
+    double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
     double errorX1_X2 = posx1-posx2;
     // Controlador PID para ajustar la velocidad entre los pares de motores
     motorsPIControlPosition(errorX1_X2);
+    
     double finalPos = (posx1 + posx2)/2;
     // printf("Final pos %f\n",finalPos);
     if (finalPos >= distance){

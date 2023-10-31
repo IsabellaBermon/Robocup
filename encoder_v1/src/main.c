@@ -32,6 +32,10 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
+    printf("an1: %d ,",angleMotor1);
+    printf("an2: %d ,",angleMotor2);
+    printf("an3: %d ,",angleMotor3);
+    printf("an4: %d ,",angleMotor4);
 }
 
 
@@ -49,11 +53,11 @@ int main(){
 
   while (1){
     getAnglesMotors();
-    printf("bt %d\n",btAvailable);
+    //distanceMotorsClockWise();
+    
     if(btAvailable){
       continue;
     }
-    printf("ya llegaron datos\n");
 
     if(banAngle){
       rotation(angleBt);
