@@ -23,8 +23,8 @@ double Kd_d = 0.02; // Coeficiente derivativo
 double Kp = 0.15; // Coeficiente proporcional
 double Ki = 0.05; // Coeficiente integral
 double Kd = 0.1; // Coeficiente derivativo
-double Kp_r= 0.6; // Coeficiente proporcional
-double Ki_r = 0.00022; // Coeficiente integral
+double Kp_r= 0.15; // Coeficiente proporcional
+double Ki_r = 0.0005; // Coeficiente integral
 double Kd_r = 0.1; // Coeficiente derivativo
 double integralError_pair = 0;
 double previousError_pair = 0;
@@ -109,20 +109,27 @@ void dualMotorPIDControl(){
 }
 
 void dualMotorPDControlRotation(){
+  motorAngle1 = distanceMotor1/radio;
+  motorAngle2 = distanceMotor2/radio;
+  motorAngle3 = distanceMotor3/radio;
+  motorAngle4 = distanceMotor4/radio;
+  printf("ma1: %lf ",motorAngle1);
+  printf("ma2: %lf ",motorAngle2);
+  printf("ma3: %lf ",motorAngle3);
+  printf("ma4: %lf\n",motorAngle4);
+  double error1_4 = motorAngle1 - motorAngle4;
+  double error2_3 = motorAngle2 - motorAngle3;
 
-  double error1_4 = distanceMotor1 - distanceMotor4;
-  double error2_3 = distanceMotor2 - distanceMotor3;
-
-  double pidAdjustment1_4 = (Kp_r) * error1_4 + Ki_r*integralError1_4 + Kd_r * (error1_4 - previousError1_4);
-  double pidAdjustment2_3 = Kp_r * error2_3 + Ki_r*integralError2_3 + Kd_r* (error2_3 - previousError2_3);
+  double pidAdjustment1_4 = (Kp_r) * error1_4  + Kd_r * (error1_4 - previousError1_4);
+  double pidAdjustment2_3 = Kp_r * error2_3 +  Kd_r* (error2_3 - previousError2_3);
   integralError1_4 += error1_4;
   integralError2_3 += error2_3;
   previousError1_4 = error1_4;
   previousError2_3 = error2_3;
-  printf("adj1 %lf ,",pidAdjustment1_4);
-  printf("error1_4 %lf ,",error1_4);
-  printf("error2_3 %lf ,",error2_3);
-  printf("adj2 %lf\n",pidAdjustment2_3);
+  // printf("adj1 %lf ,",pidAdjustment1_4);
+  // printf("error1_4 %lf ,",error1_4);
+  // printf("error2_3 %lf ,",error2_3);
+  // printf("adj2 %lf\n",pidAdjustment2_3);
   if(error1_4 > 0){
     adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
   }else{

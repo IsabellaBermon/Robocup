@@ -94,27 +94,25 @@ void rotation(double rotationAngle){
     dualMotorPDControlRotation();
     motorsClockWise();
     distanceMotorsClockWise();
-    motorAngle1 = distanceMotor1/radio;
-    motorAngle2 = distanceMotor2/radio;
-    motorAngle3 = distanceMotor3/radio;
-    motorAngle4 = distanceMotor4/radio;
+    // motorAngle1 = distanceMotor1/radio;
+    // motorAngle2 = distanceMotor2/radio;
+    // motorAngle3 = distanceMotor3/radio;
+    // motorAngle4 = distanceMotor4/radio;
     double motorAngle1_4 =(motorAngle1 + motorAngle4)/2;
     double motorAngle2_3 = (motorAngle2 + motorAngle3)/2;
     double angleError = motorAngle1_4 - motorAngle2_3;
-    anglesPIDControlRotation(angleError);
+    // anglesPIDControlRotation(angleError);
 
     double angleFinal = (motorAngle1_4+motorAngle2_3)/2;
 
     printf(" angle %lf \n",angleFinal);
-    if(angleFinal*180/PI >=rotationAngle-3){
-      motorStop();
+    if(angleFinal*180/PI >=rotationAngle){
+      motorStop(); 
       restartControl();
-      restartMovement();
+      restartMovement(); 
       getOffsets();
       banStop=true;
     }
-  
-
   }
 }
 void moveForward(double distance){
