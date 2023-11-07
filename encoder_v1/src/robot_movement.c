@@ -32,7 +32,7 @@ void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
-  if((offCW1 + offset1) > 715){
+  if((offCW1 + offset1) >= 715){
     if((offCW1+offset1) >= 728){
       offset1 = 728-offCW1;
     }
@@ -53,11 +53,11 @@ void motorClockWise3(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
 }
 void motorCounterClockWise4(){
-  if((offCC4 + offset4) < 785){
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
-  }else{
-    offset4 = 5;
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
+  if((offCC4 + offset4) <= 790){
+    if((offCC4 + offset4)<= 772){
+        offset4 = 772-offCC4;
+    }
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+6); 
   }
 }
 void motorClockWise4(){

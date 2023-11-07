@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include <math.h>
 #define circunference 0.037698 // en metros
 #define radio 0.0925
 

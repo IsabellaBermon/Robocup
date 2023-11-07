@@ -32,7 +32,6 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-
 }
 
 
@@ -50,8 +49,8 @@ int main(){
 
   while (1){
     getAnglesMotors();
-    moveForward(10);
-    
+    moveForward(2);
+
     //distanceMotorsClockWise();
   
   //   if(btAvailable){
