@@ -31,6 +31,8 @@ double previousError_pair = 0;
 double Kp_pair = 1; // Coeficiente proporcional
 double Ki_pair = 0.000001; // Coeficiente integral
 double Kd_pair = 0; // Coeficiente derivativo
+double filtroD = 0.0;
+double alpha = 0.3;  // Factor de suavizado, ajustar según sea necesario
 
 double previousErrorAngle = 0;
 double integralErrorAngle = 0;
@@ -79,33 +81,58 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
  }
 }
 void dualMotorPIDControl(){
+  const double MAX_ADJUSTMENT = 0.8;
   double error1_4 = (distanceMotor1 - distanceMotor4);
-  double error2_3 = (distanceMotor2 - distanceMotor3);
-  double pidAdjustment1_4 = Kp_d * error1_4 + Ki_d*integralError1_4 + Kd_d * (error1_4 - previousError1_4);
-  double pidAdjustment2_3 = Kp_d * error2_3 + Ki_d*integralError2_3 + Kd_d* (error2_3 - previousError2_3);
-  
+  //double error2_3 = (distanceMotor2 - distanceMotor3);
+
+  double derivativoSinFiltrar = (error1_4 - previousError1_4);
+  filtroD = alpha * derivativoSinFiltrar + (1 - alpha) * filtroD;
   integralError1_4 += error1_4;
-  integralError2_3 += error2_3;
+
+  double pidAdjustment1_4 = 2* error1_4 + 0*integralError1_4 + 0*(filtroD);
+  //double pidAdjustment2_3 = Kp_d * error2_3 + Ki_d*integralError2_3 + Kd_d* (error2_3 - previousError2_3);
   
-  // printf("adj1 %lf ,",pidAdjustment1_4);
-  // printf("error1_4 %lf ,",error1_4);
+  //integralError2_3 += error2_3;
+   
+  printf("adj1 %lf ,",pidAdjustment1_4);
+  printf("off1 %d ",offset1);
+  printf("off4 %d ",offset4);
+  printf("error1_4 %lf\n",error1_4);
+  // if (pidAdjustment1_4 > MAX_ADJUSTMENT) {
+  //   pidAdjustment1_4 = MAX_ADJUSTMENT;
+  //   // Evitar la acumulación excesiva cuando el actuador está saturado
+  //   if (error1_4 > 0) {
+  //     integralError1_4 -= error1_4;
+  //   }
+  // } else if (pidAdjustment1_4 < -MAX_ADJUSTMENT) {
+  //   pidAdjustment1_4 = -MAX_ADJUSTMENT;
+  //   // Evitar la acumulación excesiva cuando el actuador está saturado
+  //   if (error1_4 < 0) {
+  //     integralError1_4 -= error1_4;
+  //   }
+  // }
   // printf("error2_3 %lf ,",error2_3);
   // printf("adj2 %lf\n",pidAdjustment2_3);
+  //previousError2_3 = error2_3;
+  if(error1_4 != previousError1_4){
+
+    if(error1_4 > 0){
+      adjustMotorSpeed(1, pidAdjustment1_4);  
+      adjustMotorSpeed(4, pidAdjustment1_4);  
+      
+    }else if(error1_4<0){
+      adjustMotorSpeed(1, -pidAdjustment1_4);  
+      adjustMotorSpeed(4, -pidAdjustment1_4);  
+  }
+  }
   previousError1_4 = error1_4;
-  previousError2_3 = error2_3;
-  if(error1_4 > 0){
-    adjustMotorSpeed(1, pidAdjustment1_4);  
-  }else{
+  // if(error2_3 > 0){
 
-    adjustMotorSpeed(4, -pidAdjustment1_4);  
-  }
-  if(error2_3 > 0){
+  // adjustMotorSpeed(2, -pidAdjustment2_3);  
+  // }else{
 
-  adjustMotorSpeed(2, -pidAdjustment2_3);  
-  }else{
-
-  adjustMotorSpeed(3, -pidAdjustment2_3); 
-  }
+  // adjustMotorSpeed(3, -pidAdjustment2_3); 
+  // }
 }
 
 void dualMotorPDControlRotation(){

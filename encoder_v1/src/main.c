@@ -46,29 +46,31 @@ int main(){
   getOffsets();
   initMotor();
   //add_repeating_timer_us(200,&timer_callback,NULL,&timer);
-  initBluetooth();    
+  //initBluetooth();    
 
   while (1){
     getAnglesMotors();
-    //distanceMotorsClockWise();
+    moveForward(10);
     
-    if(btAvailable){
-      continue;
-    }
+    //distanceMotorsClockWise();
+  
+  //   if(btAvailable){
+  //     continue;
+  //   }
 
-    if(banAngle){
-      rotation(angleBt);
-    }else if(banDistance){
-      moveForward(distanceBt);
-    }
+  //   if(banAngle){
+  //     rotation(angleBt);
+  //   }else if(banDistance){
+  //     moveForward(distanceBt);
+  //   }
 
-    if(banStop){
-      banAngle=false;
-      banDistance=false;
-      btAvailable = true;
-      banStop = false;
-    }
-    //moveForward(1);
+  //   if(banStop){
+  //     banAngle=false;
+  //     banDistance=false;
+  //     btAvailable = true;
+  //     banStop = false;
+  //   }
+  //   //moveForward(1);
   }
 
   return 0;
