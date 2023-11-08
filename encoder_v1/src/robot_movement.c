@@ -40,9 +40,15 @@ void motorClockWise1(){
   }
 }
 void motorCounterClockWise2(){
-  pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
+  if((offCC2 + offset2)<=790){
+    if((offCC2+offset2)<=772){
+      offset2= 772-offCC2;
+    }
+    pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
+  }
 }
 void motorClockWise2(){
+
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
 }
 void motorCounterClockWise3(){
@@ -50,7 +56,12 @@ void motorCounterClockWise3(){
 
 }
 void motorClockWise3(){
-  pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
+  if((offCW3+offset3) <= 790){
+    if((offCW3+offset3)<=772){
+      offset3 = 772-offCW3;
+    }
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
+  }
 }
 void motorCounterClockWise4(){
   if((offCC4 + offset4) <= 790){
@@ -70,10 +81,10 @@ void motorStop(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
 }
 void motorsForward(){
-  motorClockWise1();
-  //motorCounterClockWise2();
-  //motorClockWise3();
-  motorCounterClockWise4();
+  //motorClockWise1();
+  motorCounterClockWise2();
+  motorClockWise3();
+  //motorCounterClockWise4();
 }
 void motorsClockWise(){
     motorClockWise1();
@@ -126,10 +137,10 @@ void rotation(double rotationAngle){
   }
 }
 void moveForward(double distance){
-  offCW1 = 720;
-  offCC2 = 0;
-  offCW3 = 0;
-  offCC4 = 780;
+  offCW1 = 0;
+  offCC2 = 780;
+  offCW3 = 780;
+  offCC4 = 0;
   if (distance > 0){    
     motorsForward();
     distanceMotorsForward();
@@ -137,15 +148,15 @@ void moveForward(double distance){
     //motorsForward();
     // distanceMotorsForward();
 
-    double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
-    // double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
+   // double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
+     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
     // double errorX1_X2 = posx1-posx2;
     // // Controlador PID para ajustar la velocidad entre los pares de motores
     // motorsPIControlPosition(errorX1_X2);
     
     // double finalPos = (posx1 + posx2)/2;
     // // printf("Final pos %f\n",finalPos);
-    if (posx1 >= distance){
+    if (posx2 >= distance){
       motorStop();
       sleep_ms(10000);
     //   restartControl();
