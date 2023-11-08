@@ -4,6 +4,8 @@ double distanceMotor1 = 0;
 double distanceMotor2 = 0;
 double distanceMotor3 = 0;
 double distanceMotor4 = 0;
+
+
 double motorAngle1=0;
 double motorAngle2=0;
 double motorAngle3=0;
@@ -32,35 +34,59 @@ double Kp_pair = 1; // Coeficiente proporcional
 double Ki_pair = 0.000001; // Coeficiente integral
 double Kd_pair = 0; // Coeficiente derivativo
 double filtroD = 0.0;
-double alpha = 0.3;  // Factor de suavizado, ajustar según sea necesario
+double alpha = 0.1;  // Factor de suavizado, ajustar según sea necesario
 
 double previousErrorAngle = 0;
 double integralErrorAngle = 0;
 
-void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor){
+uint64_t prevTimeUsMotor1 = 0;
+uint64_t prevTimeUsMotor2=0;
+uint64_t prevTimeUsMotor3=0;
+uint64_t prevTimeUsMotor4=0;
+double windowTimeMotor1=0;
+double windowTimeMotor2=0;
+double windowTimeMotor3=0;
+double windowTimeMotor4=0;
+double velMotor1 = 0;
+double velMotor2 = 0;
+double velMotor3 = 0;
+double velMotor4 = 0;
 
+void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,double *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
+  
+  uint64_t currentTimeUs = time_us_64();
+
+  bool auxTurnMotor = 0;
   if (angleMotor >= 350 && *banTurnsMotor){
     (*turnMotor)++;
+    auxTurnMotor = 1;
+    *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
+
+    *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
   }
   else if (angleMotor <= 20){
     *banTurnsMotor = true;
   }
   *distanceMotor = (*turnMotor)*circunference;
+  *velMotor= auxTurnMotor ? (circunference*1000)/(*windowTimeMotor) : (*velMotor);
 }
 
-void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor){
-
+void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,double *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
+  uint64_t currentTimeUs = time_us_64();
+  bool auxTurnMotor = 0;
   if (angleMotor >= 350){
     *banTurnsMotor = true;
   }
   else if (angleMotor <= 20  && *banTurnsMotor ){
     (*turnMotor)++;
-
+    auxTurnMotor = 1;
+    *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
+    *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
   }
   *distanceMotor = (*turnMotor)*circunference;
-
+  *velMotor= auxTurnMotor ? (circunference*1000)/(*windowTimeMotor) : (*velMotor);
 }
 void adjustMotorSpeed(uint motorNumber, double adjustment) {
  switch (motorNumber){
@@ -82,14 +108,14 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 }
 void dualMotorPIDControl(){
  
-  double error1_4 = (distanceMotor1 - distanceMotor4);
+  double error1_4 = (velMotor1 - velMotor4);
   //double error2_3 = (distanceMotor2 - distanceMotor3);
 
   double derivativoSinFiltrar = (error1_4 - previousError1_4);
   filtroD = alpha * derivativoSinFiltrar + (1 - alpha) * filtroD;
   integralError1_4 += error1_4;
 
-  double pidAdjustment1_4 = 2* error1_4 + 0*integralError1_4 + 0*(filtroD);
+  double pidAdjustment1_4 = 1.4* error1_4 + 0.001*integralError1_4 + 0.6*(error1_4 - previousError1_4);
   //double pidAdjustment2_3 = Kp_d * error2_3 + Ki_d*integralError2_3 + Kd_d* (error2_3 - previousError2_3);
   
   //integralError2_3 += error2_3;
@@ -121,9 +147,9 @@ void dualMotorPIDControl(){
   if(error1_4 != previousError1_4){
     if(error1_4 > 0){
       adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);  
-      //adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);        
+      adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);        
     }else if(error1_4<0){
-      //adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);  
+      adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);  
       adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);  
     }
   }

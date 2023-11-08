@@ -49,7 +49,7 @@ int main(){
 
   while (1){
     getAnglesMotors();
-    moveForward(2);
+    moveForward(1.5);
 
     //distanceMotorsClockWise();
   
