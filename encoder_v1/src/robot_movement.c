@@ -66,13 +66,13 @@ void motorClockWise3(){
   }
 }
 void motorCounterClockWise4(){
-  if((offCC4 + offset4) <= 785){
+  if((offCC4 + offset4) <= 788){
     if((offCC4 + offset4)<= 772){
         offset4 = 772-offCC4;
     }
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+6); 
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
   }else{
-    offset4 = 9;
+    offset4 = 6;
   }
 }
 void motorClockWise4(){
@@ -144,7 +144,7 @@ void moveForward(double distance){
   offCW1 = 724;
   offCC2 = 0;
   offCW3 = 0;
-  offCC4 = 776;
+  offCC4 = 782;
   if (distance > 0){    
     motorsForward();
     distanceMotorsForward();
