@@ -14,7 +14,6 @@ uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
 uint16_t angleMotor4 = 0;
 
-
 uint16_t turnMotor1 = 0;
 uint16_t turnMotor2 = 0;
 uint16_t turnMotor3 = 0;
@@ -25,8 +24,6 @@ bool banTurnsMotor2 = 0;
 bool banTurnsMotor3 = 0;
 bool banTurnsMotor4 = 0;
 bool banStop = false;
-
-
 
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
