@@ -32,6 +32,8 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
+  printf("angle 1 %d ",angleMotor1);
+  printf("angle 4 %d\n",angleMotor4);
 }
 
 
@@ -50,6 +52,7 @@ int main(){
   while (1){
     getAnglesMotors();
     moveForward(1.5);
+
 
     //distanceMotorsClockWise();
   

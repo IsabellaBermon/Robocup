@@ -109,14 +109,14 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 void dualMotorPIDControl(){
  
   double error1_4 = (velMotor1 - velMotor4);
-  //double error2_3 = (velMotor2 - velMotor3);
+  //double error2_3 = (velMotor2 - velMotor3);a
 
   // double derivativoSinFiltrar = (error1_4 - previousError1_4);
   // filtroD = alpha * derivativoSinFiltrar + (1 - alpha) * filtroD;
   integralError1_4 += error1_4;
   //integralError2_3 += error2_3;
 
-  double pidAdjustment1_4 = 3* error1_4 + 0*integralError1_4 + 0*(error1_4 - previousError1_4);
+  double pidAdjustment1_4 = 18* error1_4 + 0*integralError1_4 + 5*(error1_4 - previousError1_4);
   //double pidAdjustment1_4 = 1.4* error1_4 + 0.001*integralError1_4 + 0.6*(error1_4 - previousError1_4);
   //double pidAdjustment2_3 = 2.2* error2_3 + 0.0002*integralError2_3 + 1* (error2_3 - previousError2_3);
   
@@ -129,12 +129,12 @@ void dualMotorPIDControl(){
   // if(pidAdjustment2_3 > 0){
   //   pidAdjustment2_3 = ceil(pidAdjustment2_3);
   // }else{
-  //   pidAdjustment2_3 = floor(pidAdjustment2_3);
-  // }
-  printf("adj1 %lf ,",pidAdjustment1_4);
-  printf("off1 %d ",offset1);
-  printf("off4 %d ",offset4);
-  printf("error1_4 %lf\n",error1_4);
+  // //   pidAdjustment2_3 = floor(pidAdjustment2_3);
+  // // }
+  // printf("adj1 %lf ,",pidAdjustment1_4);
+  // printf("off1 %d ",offset1);
+  // printf("off4 %d ",offset4);
+  // printf("error1_4 %lf\n",error1_4);
   
   if(error1_4 != previousError1_4){
     if(error1_4 > 0){

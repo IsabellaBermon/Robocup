@@ -1,13 +1,13 @@
 #include "robot_movement.h"
 
-uint16_t offCW1 = 720;
+uint16_t offCW1 = 726;
 uint16_t offCW2 = 720;
 uint16_t offCW3 = 780;
 uint16_t offCW4 = 720;
 uint16_t offCC1 = 780;
 uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
-uint16_t offCC4 = 780;
+uint16_t offCC4 = 774;
 
 uint16_t angleMotor1 = 0;
 uint16_t angleMotor2 = 0;
@@ -32,13 +32,13 @@ void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
-  if((offCW1 + offset1) >= 720){
-    if((offCW1+offset1) >= 728){
-      offset1 = 728-offCW1;
+  if((offCW1 + offset1) >= 718){
+    if((offCW1+offset1) >= 730){
+      offset1 = 730-offCW1;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-5;
+    offset1=-6;
   }
 }
 void motorCounterClockWise2(){
@@ -70,9 +70,9 @@ void motorCounterClockWise4(){
     if((offCC4 + offset4)<= 772){
         offset4 = 772-offCC4;
     }
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+9); 
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+6); 
   }else{
-    offset4 = 10;
+    offset4 = 9;
   }
 }
 void motorClockWise4(){
@@ -141,10 +141,10 @@ void rotation(double rotationAngle){
   }
 }
 void moveForward(double distance){
-  offCW1 = 725;
+  offCW1 = 724;
   offCC2 = 0;
   offCW3 = 0;
-  offCC4 = 775;
+  offCC4 = 776;
   if (distance > 0){    
     motorsForward();
     distanceMotorsForward();
