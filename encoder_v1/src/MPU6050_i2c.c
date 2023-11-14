@@ -6,7 +6,18 @@
 
 
 // By default these devices  are on bus address 0x68
+int gyro_z_readings[WINDOW_SIZE] = {0};
+int index_media = 0;
+int sum = 0;
 
+
+void mpu_init(){
+    i2c_init(MPU6050_i2c,100000);
+    gpio_set_function(SDA_MPU,GPIO_FUNC_I2C);
+    gpio_set_function(SCL_MPU,GPIO_FUNC_I2C);
+    gpio_pull_up(SDA_MPU);
+    gpio_pull_up(SCL_MPU);
+}
 void mpu6050_reset() {
     // Two byte reset. First byte register, second byte data
     // There are a load more options to set up the device in different ways that could be added here
@@ -44,4 +55,18 @@ void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3]) {
     // *temp = (buffer[0] << 8) | buffer[1];
 }
 
+
+
+int filter_median_moving(int new_reading) {
+    // Subtract the oldest reading from sum
+    sum -= gyro_z_readings[index_media];
+    // Add the new reading to sum
+    sum += new_reading;
+    // Store the new reading in the buffer
+    gyro_z_readings[index_media] = new_reading;
+    // Increment the index
+    index_media = (index_media + 1) % WINDOW_SIZE;
+    // Return the average
+    return sum / WINDOW_SIZE;
+}
 

@@ -25,6 +25,12 @@ bool banTurnsMotor3 = 0;
 bool banTurnsMotor4 = 0;
 bool banStop = false;
 
+double angularPosition=0, prevAngularPosition=0;
+double angularVelocity;
+double robotAngle = 0;
+bool angularFlag = true;
+int offsetZ;
+int16_t acceleration[3], gyro[3],temp;
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
@@ -183,4 +189,30 @@ void restartMovement(){
   banTurnsMotor3 = 0;
   banTurnsMotor4 = 0;
 
+}
+bool updateAngle(repeating_timer_t *t){
+  mpu6050_read_raw(acceleration,gyro);
+  if(angularFlag==true){
+    offsetZ = filter_median_moving(gyro[2]);
+    if (index_media==9){
+      angularFlag = false;
+    }
+  }
+  else {
+    angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
+    double angle = (prevAngularPosition + (angularVelocity*0.0022));
+    prevAngularPosition = angle;
+    angularPosition = angle > 0 ? angle*2 : angle*1.9;
+    // Actualiza ángulo cada 10°
+    if (angularPosition>=10){
+      prevAngularPosition = 0;
+      robotAngle += 10;
+    }
+    else if (angularPosition<=-10)
+    {
+      prevAngularPosition = 0;
+      robotAngle -= 10;
+    }
+  }
+  return true;
 }
