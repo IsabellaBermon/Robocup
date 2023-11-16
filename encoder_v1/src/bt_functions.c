@@ -97,6 +97,10 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
         if (*lista[0] == 'G') {
           angleBt = atof(lista[1]);
           banAngle = true;
+          robotAngle = 0;
+          prevAngularPosition = 0;
+          angularVelocity= 0;
+          angularPosition =0;
           printf("entro G\n");
           // uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
           // sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena

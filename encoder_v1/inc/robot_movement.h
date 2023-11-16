@@ -68,5 +68,5 @@ void distanceMotorsClockWise();
 void rotation(double rotationAngle);
 void moveForward(double distance);
 void restartMovement();
-bool updateAngle(repeating_timer_t *t);
+void updateAngle();
 #endif
