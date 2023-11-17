@@ -112,11 +112,19 @@ void distanceMotorsClockWise(){
     distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4,&velMotor4,&windowTimeMotor4,&prevTimeUsMotor4);
   }
 void rotation(double rotationAngle){
-  offCW1 = 735;
-  offCW2 = 735;
-  offCW3 = 765;
-  offCW4 = 735;
+ 
   if(rotationAngle > 0){
+    if(robotAngle < rotationAngle-rotationAngle*0.4){
+      offCW1 = 735;
+      offCW2 = 735;
+      offCW3 = 765;
+      offCW4 = 735;
+    }else{
+      offCW1 = 738;
+      offCW2 = 738;
+      offCW3 = 764;
+      offCW4 = 738;
+    }
     motorsClockWise();
     // distanceMotorsClockWise();
     // dualMotorPDControlRotation();
@@ -133,10 +141,10 @@ void rotation(double rotationAngle){
 
     // double angleFinal = (motorAngle1_4+motorAngle2_3)/2;
 
-    //printf(" angle %lf \n",robotAngle);
+    printf(" angle %lf \n",robotAngle);
     if(robotAngle >=rotationAngle){
       motorStop(); 
-      //sleep_ms(10000);
+      //sleep_ms(5000);
       restartControl();
       restartMovement(); 
       resetFilter();
@@ -196,11 +204,11 @@ void restartMovement(){
   prevAngularPosition=0;
   angularVelocity=0;
   robotAngle = 0;
-  //angularFlag = true;
+  angularFlag = true;
   //offsetZ=0;
 }
 void updateAngle(){
-  // int64_t currentTime = time_us_64();
+  //uint64_t currentTime = time_us_64();
 
   mpu6050_read_raw(acceleration,gyro);
   if(angularFlag==true){
@@ -211,22 +219,21 @@ void updateAngle(){
   }
   else {
     // double windowTime = (currentTime - prevTime);
-    // //  printf("window %lf\n ",windowTime);
+    //  printf("window %lf\n ",windowTime);
     // prevTime=currentTime;
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
-    double angle = (prevAngularPosition + (angularVelocity*0.000125));
+    double angle = (prevAngularPosition + (angularVelocity*0.0028));
     prevAngularPosition = angle;
-    angularPosition = angle > 0 ? angle*2.15 : angle*1.9;
+    angularPosition = angle > 0 ? angle*1.125: angle*1;
     // Actualiza ángulo cada 10°
-    if (angularPosition>=5){
+    if (angularPosition>=2){
       prevAngularPosition = 0;
-      robotAngle += 5;
+      robotAngle += 2;
     }
-    else if (angularPosition<=-5)
+    else if (angularPosition<=-2)
     {
       prevAngularPosition = 0;
-      robotAngle -= 5;
+      robotAngle -= 2;
     }
   }
-  return true;
 }

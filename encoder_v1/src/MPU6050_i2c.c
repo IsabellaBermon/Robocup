@@ -71,8 +71,9 @@ int filter_median_moving(int new_reading) {
 }
 
 void resetFilter(){
-    mpu6050_reset();
+    uint8_t interrupt_enable_data[] = {0x1B, 0x00}; // Registro INT_ENABLE (dirección 0x38) para habilitar la interrupción de detección de movimiento
+    i2c_write_blocking(MPU6050_i2c,MPU6050_addr, interrupt_enable_data, sizeof(interrupt_enable_data), false);
     //gyro_z_readings[WINDOW_SIZE] = {0};
-    // index_media = 0;
-    // sum = 0;    
+    index_media = 0;
+    sum = 0;    
 }

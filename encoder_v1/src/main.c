@@ -18,10 +18,9 @@ void getAnglesMotors(){
   // // printf("angle 1 %d ",angleMotor1);
   // printf("angle 4 %d\n",angleMotor4);
 }
-
-volatile uint64_t prevTime2 = 0;
+bool interruptFlag = false;
 void prueba(){
-  updateAngle();
+  interruptFlag = true;
 }
 
 
@@ -40,7 +39,7 @@ int main(){
   initI2C();
 
   getOffsets();
-  //initBluetooth();    
+  initBluetooth();    
   initMotor();
  // add_repeating_timer_us(2200,&updateAngle,NULL,&timer);
   
@@ -48,35 +47,38 @@ int main(){
   while (1){
 
     getAnglesMotors();
-   
+    if(interruptFlag){
+      updateAngle();
+      interruptFlag = false;
+    }
     //printf("%d\n",gpio_get(4));
-    
+   
     //getAngleMPU();
     //updateAngle();
-    printf(" angle %lf \n",prevAngularPosition);
+    printf(" angle %f \n",robotAngle);
 
     //mpu6050_read_raw(acceleration,gyro);
     //rotation(90);
     //printf("angle %lf\n ",robotAngle);
     //moveForward(1.5);
 
-    // if(btAvailable){
-    //   continue;
-    // }
+    if(btAvailable){
+      continue;
+    }
 
-    // if(banAngle){
-    //   rotation(angleBt);
-    // }else if(banDistance){
-    //   moveForward(distanceBt);
-    // }
+    if(banAngle){
+      rotation(angleBt);
+    }else if(banDistance){
+      moveForward(distanceBt);
+    }
 
-    // if(banStop){
-    //   banAngle=false;
-    //   banDistance=false;
-    //   btAvailable = true;
-    //   banStop = false;
+    if(banStop){
+      banAngle=false;
+      banDistance=false;
+      btAvailable = true;
+      banStop = false;
       
-    //   }
+      }
   }
 
   return 0;
