@@ -36,20 +36,19 @@ void motorCounterClockWise1(){
 }
 void motorClockWise1(){
   if((offCW1 + offset1) >= 718){
-    if((offCW1+offset1) >= 732){
-      offset1 = 732-offCW1;
-    }
+    // if((offCW1+offset1) >= 732){
+    //   offset1 = 732-offCW1;
+    // }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-6;
+    offset1=-30;
   }
 }
 void motorCounterClockWise2(){
   if((offCC2 + offset2)<=790){
-    if((offCC2+offset2)<=772){
-      offset2= 772-offCC2;
-    }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
+  }else{
+    offset2=30;
   }
 }
 void motorClockWise2(){
@@ -62,20 +61,17 @@ void motorCounterClockWise3(){
 }
 void motorClockWise3(){
   if((offCW3+offset3) <= 790){
-    if((offCW3+offset3)<=760){
-      offset3 = 760-offCW3;
-    }
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3+4); // 780
+  
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
+  }else{
+    offset3=30;
   }
 }
 void motorCounterClockWise4(){
   if((offCC4 + offset4) <= 788){
-    if((offCC4 + offset4)<= 768){
-        offset4 = 768-offCC4;
-    }
     pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
   }else{
-    offset4 = 6;
+    offset4 = 28;
   }
 }
 void motorClockWise4(){
@@ -89,8 +85,8 @@ void motorStop(){
 }
 void motorsForward(){
   motorClockWise1();
-  //motorCounterClockWise2();
-  //motorClockWise3();
+  motorCounterClockWise2();
+  motorClockWise3();
   motorCounterClockWise4();
 }
 void motorsClockWise(){
@@ -154,34 +150,38 @@ void rotation(double rotationAngle){
   }
 }
 void moveForward(double distance){
-  offCW1 = 724;
-  offCC2 = 0;
-  offCW3 = 0;
-  offCC4 = 782;
+  offCW1 = 728;
+  offCC2 = 775;
+  offCW3 = 775;
+  offCC4 = 775;
   if (distance > 0){    
+    distanceMotorsForward();
+    m1ControlSpeed(0.6,1);
+    m2ControlSpeed(0.6,-1);
+    m3ControlSpeed(0.6,1);
+    m4ControlSpeed(0.6,-1);
     motorsForward();
-    // distanceMotorsForward();
     // dualMotorPIDControl();
     //motorsForward();
     // distanceMotorsForward();
 
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
-     //double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
+    double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
     // double errorX1_X2 = posx1-posx2;
     // // Controlador PID para ajustar la velocidad entre los pares de motores
     // motorsPIControlPosition(errorX1_X2);
     
-    // double finalPos = (posx1 + posx2)/2;
+    double finalPos = (posx1 + posx2)/2;
     printf("Final pos %f\n",posx1);
-    if (posx1 >= distance){
+    if (finalPos >= distance){
       motorStop();
-      //sleep_ms(10000);
-      restartControl();
-      restartMovement();
-      resetFilter();
+      sleep_ms(10000);
+      // restartControl();
+      // restartMovement();
+      // resetFilter();
 
-      getOffsets();
-      banStop=true;
+      // getOffsets();
+      //banStop=true;
 
     }
   }
@@ -221,10 +221,11 @@ void updateAngle(){
     // double windowTime = (currentTime - prevTime);
     //  printf("window %lf\n ",windowTime);
     // prevTime=currentTime;
-    angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
-    double angle = (prevAngularPosition + (angularVelocity*0.0028));
+    angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131;
+    double angle = (prevAngularPosition + (angularVelocity*0.002));
     prevAngularPosition = angle;
     angularPosition = angle > 0 ? angle*1.125: angle*1;
+    printf(" angle %d \n",angle);
     // Actualiza ángulo cada 10°
     if (angularPosition>=2){
       prevAngularPosition = 0;
