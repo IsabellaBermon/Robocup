@@ -211,6 +211,7 @@ void updateAngle(){
   //uint64_t currentTime = time_us_64();
 
   mpu6050_read_raw(acceleration,gyro);
+
   if(angularFlag==true){
     offsetZ = filter_median_moving(gyro[2]);
     if (index_media==9){
@@ -224,7 +225,7 @@ void updateAngle(){
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
     double angle = (prevAngularPosition + (angularVelocity*0.0028));
     prevAngularPosition = angle;
-    angularPosition = angle > 0 ? angle*1.125: angle*1;
+    angularPosition = angle > 0 ? angle*1: angle*1;
     // Actualiza ángulo cada 10°
     if (angularPosition>=2){
       prevAngularPosition = 0;
@@ -236,4 +237,5 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
+    printf("angle %f \n",robotAngle);
 }

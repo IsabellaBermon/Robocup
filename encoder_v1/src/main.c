@@ -31,15 +31,15 @@ int main(){
   gpio_is_pulled_down(4);
   mpu_init();
   mpu6050_reset();
-  uint8_t interrupt_enable_data[] = {0x38, 0x01}; // Registro INT_ENABLE (dirección 0x38) para habilitar la interrupción de detección de movimiento
-  i2c_write_blocking(MPU6050_i2c,MPU6050_addr, interrupt_enable_data, sizeof(interrupt_enable_data), false);
-  gpio_set_irq_enabled_with_callback(4,GPIO_IRQ_EDGE_RISE,true,&prueba);
+  // uint8_t interrupt_enable_data[] = {0x38, 0x01}; // Registro INT_ENABLE (dirección 0x38) para habilitar la interrupción de detección de movimiento
+  // i2c_write_blocking(MPU6050_i2c,MPU6050_addr, interrupt_enable_data, sizeof(interrupt_enable_data), false);
+  // gpio_set_irq_enabled_with_callback(4,GPIO_IRQ_EDGE_RISE,true,&prueba);
     // Configurar la función de interrupció
   static repeating_timer_t timer;
   initI2C();
 
   getOffsets();
-  initBluetooth();    
+  //initBluetooth();    
   initMotor();
  // add_repeating_timer_us(2200,&updateAngle,NULL,&timer);
   
@@ -47,15 +47,15 @@ int main(){
   while (1){
 
     getAnglesMotors();
-    if(interruptFlag){
-      updateAngle();
-      interruptFlag = false;
-    }
+    //if(interruptFlag){
+    updateAngle();
+    //   interruptFlag = false;
+    // }
     //printf("%d\n",gpio_get(4));
    
     //getAngleMPU();
     //updateAngle();
-    printf(" angle %f \n",robotAngle);
+    //printf(" angle %f \n",robotAngle);
 
     //mpu6050_read_raw(acceleration,gyro);
     //rotation(90);
