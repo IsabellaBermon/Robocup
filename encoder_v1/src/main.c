@@ -1,9 +1,14 @@
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 #include <stdio.h>
+#include <stdint.h>
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
 #include "robot_movement.h"
 #include "bt_functions.h"
 
-
-
+SemaphoreHandle_t mutex;
 void getAnglesMotors(){
   tca_select_channel(0);
   angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
@@ -18,68 +23,171 @@ void getAnglesMotors(){
   // // printf("angle 1 %d ",angleMotor1);
   // printf("angle 4 %d\n",angleMotor4);
 }
-bool interruptFlag = false;
-void prueba(){
-  interruptFlag = true;
+
+
+// Function declarations
+static void HardwareInit();
+void sensorReadingTask(void *pvParameters);
+void motorControlTask(void *pvParameters);
+void mpuReadingTask(void *pvParameters);
+void communicationTask(void *pvParameters);
+void strategyTask(void *pvParameters);
+
+int main(void)
+{
+    BaseType_t xReturnedA, xReturnedB;
+    HardwareInit();
+    while (!stdio_usb_connected())
+        ;
+    sleep_ms(1000);
+    mutex = xSemaphoreCreateMutex();
+    TaskHandle_t handleA_sensor, handleA_motor, handleA_mpu;
+    TaskHandle_t handleB_communication, handleB_strategy;
+
+    // Create tasks on the first core
+    xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 3, &handleA_sensor);
+     vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
+    xReturnedA = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
+    vTaskCoreAffinitySet(handleA_motor, 1 << 0);
+    xReturnedA = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
+    vTaskCoreAffinitySet(handleA_mpu, 1 << 0);
+    // Create tasks on the second core
+    xReturnedB = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 1, &handleB_communication);
+    vTaskCoreAffinitySet(handleB_communication, 1 << 1);
+    xReturnedB = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);
+     // Set core affinity
+   
+    
+    
+    
+    vTaskCoreAffinitySet(handleB_strategy, 1 << 1);
+    // Check return values for errors
+    if (xReturnedA != pdPASS || xReturnedB != pdPASS)
+    {
+        printf("Error creating tasks\n");
+        panic_unsupported();
+    }
+
+    printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
+    printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));
+    printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
+    printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
+    printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
+
+   
+
+    // Start FreeRTOS scheduler
+    vTaskStartScheduler();
+    panic_unsupported();
 }
 
+static void HardwareInit()
+{
+    // set_sys_clock_48mhz();
+    // stdio_init_all();
+    // gpio_init(PICO_DEFAULT_LED_PIN);
+    // gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    // gpio_put(PICO_DEFAULT_LED_PIN, true);
+    stdio_init_all();
+    gpio_init(4);
+    gpio_set_dir(4, GPIO_IN);
+    gpio_is_pulled_down(4);
+    mpu_init();
+    mpu6050_reset();
 
-int main(){
-  stdio_init_all();
-  gpio_init(4);
-  gpio_set_dir(4, GPIO_IN);
-  gpio_is_pulled_down(4);
-  mpu_init();
-  mpu6050_reset();
-  // uint8_t interrupt_enable_data[] = {0x38, 0x01}; // Registro INT_ENABLE (dirección 0x38) para habilitar la interrupción de detección de movimiento
-  // i2c_write_blocking(MPU6050_i2c,MPU6050_addr, interrupt_enable_data, sizeof(interrupt_enable_data), false);
-  // gpio_set_irq_enabled_with_callback(4,GPIO_IRQ_EDGE_RISE,true,&prueba);
-    // Configurar la función de interrupció
-  static repeating_timer_t timer;
-  initI2C();
+    initI2C();
 
-  getOffsets();
-  //initBluetooth();    
-  initMotor();
- // add_repeating_timer_us(2200,&updateAngle,NULL,&timer);
-  
+    getOffsets();
+    // initBluetooth();
+    initMotor();
+}
 
-  while (1){
+void vSafePrint(char *out)
+{
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    puts(out);
+    xSemaphoreGive(mutex);
+}
 
-    getAnglesMotors();
-    //if(interruptFlag){
-    updateAngle();
-    //   interruptFlag = false;
+void printTaskInfo(const char *taskName)
+{
+    char out[128];
+    sprintf(out, "%s running on Core %d, Time: %lu ms", taskName, get_core_num(), xTaskGetTickCount());
+    vSafePrint(out);
+}
+
+void sensorReadingTask(void *pvParameters)
+{
+    // while (1) {
+    //     printTaskInfo("Sensor Reading Task");
+    //     vTaskDelay(pdMS_TO_TICKS(1)); // Execute every 1 ms
     // }
-    //printf("%d\n",gpio_get(4));
-   
-    //getAngleMPU();
-    //updateAngle();
-    //printf(" angle %f \n",robotAngle);
-
-    //mpu6050_read_raw(acceleration,gyro);
-    //rotation(90);
-    //printf("angle %lf\n ",robotAngle);
-    //moveForward(1.5);
-
-    if(btAvailable){
-      continue;
+    TickType_t xLastWakeTime;
+    const TickType_t xFrequency = pdMS_TO_TICKS(1); // Desired interval: 1 ms
+    // Initialize the xLastWakeTime variable with the current time
+    xLastWakeTime = xTaskGetTickCount();
+    while (1)
+    {
+        printTaskInfo("Sensor Reading Task");
+        // Wait until it's time to run again
+        getAnglesMotors();
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
+}
 
-    if(banAngle){
-      rotation(angleBt);
-    }else if(banDistance){
-      moveForward(distanceBt);
+void motorControlTask(void *pvParameters)
+{
+    while (1)
+    {
+        printTaskInfo("Motor Control Task executed");
+        vTaskDelay(pdMS_TO_TICKS(50)); // Execute every 50 ms
     }
+}
 
-    if(banStop){
-      banAngle=false;
-      banDistance=false;
-      btAvailable = true;
-      banStop = false;
-      
-      }
-  }
+void mpuReadingTask(void *pvParameters)
+{
+    while (1)
+    {
+        printTaskInfo("MPU Reading Task executed");
+        updateAngle();
+        vTaskDelay(pdMS_TO_TICKS(5)); // Execute every 5 ms
+    }
+}
 
-  return 0;
-}                       
+void communicationTask(void *pvParameters)
+{
+    while (1)
+    {
+        printTaskInfo("Communication Task executed");
+        if (btAvailable)
+        {
+            continue;
+        }
+        if (banAngle)
+        {
+            rotation(angleBt);
+        }
+        else if (banDistance)
+        {
+            moveForward(distanceBt);
+        }
+
+        if (banStop)
+        {
+            banAngle = false;
+            banDistance = false;
+            btAvailable = true;
+            banStop = false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(500)); // Execute every 500 ms
+    }
+}
+
+void strategyTask(void *pvParameters)
+{
+    while (1)
+    {
+        printTaskInfo("Strategy Task executed");
+        vTaskDelay(pdMS_TO_TICKS(100)); // Execute every 1000 ms
+    }
+}

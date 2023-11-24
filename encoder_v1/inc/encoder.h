@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#include <stdint.h>
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
 

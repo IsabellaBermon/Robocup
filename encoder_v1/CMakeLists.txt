@@ -8,10 +8,11 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_SDK_PATH "C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/pico-sdk")
-
+set(FREERTOS_KERNEL_PATH "C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
+include(FreeRTOS_Kernel_import.cmake)
 
 project(encoder_v1 C CXX ASM)
 
@@ -46,6 +47,9 @@ target_link_libraries(encoder_v1
     pico_btstack_ble
     pico_btstack_cyw43
     pico_cyw43_arch_none
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
+    pico_multicore
     )
     pico_btstack_make_gatt_header(encoder_v1 PRIVATE "${CMAKE_CURRENT_LIST_DIR}/mygatt.gatt")
 

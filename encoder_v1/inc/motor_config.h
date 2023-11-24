@@ -1,6 +1,7 @@
 #ifndef MOTOR_CONFIG_H
 #define MOTOR_CONFIG_H
 
+#include <stdint.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
