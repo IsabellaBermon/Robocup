@@ -9,6 +9,12 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
+double refVelMotor1=0.5;
+double refVelMotor2=0.5;
+double refVelMotor3=0.5;
+double refVelMotor4=0.5;
+double prevErrorAngle =0;
+
 uint16_t angleMotor1 = 0;
 uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
@@ -35,20 +41,20 @@ void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
-  if((offCW1 + offset1) >= 718){
+  if((offCW1 + offset1) >= 724){
     // if((offCW1+offset1) >= 732){
     //   offset1 = 732-offCW1;
     // }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-30;
+    offset1=-4;
   }
 }
 void motorCounterClockWise2(){
-  if((offCC2 + offset2)<=790){
+  if((offCC2 + offset2)<=780){
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
   }else{
-    offset2=30;
+    offset2=5;
   }
 }
 void motorClockWise2(){
@@ -60,18 +66,18 @@ void motorCounterClockWise3(){
 
 }
 void motorClockWise3(){
-  if((offCW3+offset3) <= 790){
+  if((offCW3+offset3) <= 780){
   
     pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
   }else{
-    offset3=30;
+    offset3=5;
   }
 }
 void motorCounterClockWise4(){
-  if((offCC4 + offset4) <= 788){
+  if((offCC4 + offset4) <= 780){
     pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
   }else{
-    offset4 = 28;
+    offset4 = 5;
   }
 }
 void motorClockWise4(){
@@ -149,6 +155,34 @@ void rotation(double rotationAngle){
     }
   }
 }
+void limitVelMotor1(){
+  if(refVelMotor1>=0.7 ){
+      refVelMotor1 = 0.7;
+  }else if(refVelMotor1<=0.4){
+    refVelMotor1 = 0.4;
+  }
+}
+void limitVelMotor2(){
+  if(refVelMotor2>=0.7 ){
+      refVelMotor2 = 0.7;
+  }else if(refVelMotor2<=0.4){
+    refVelMotor2 = 0.4;
+  }
+}
+void limitVelMotor3(){
+  if(refVelMotor3>=0.7 ){
+      refVelMotor3 = 0.7;
+  }else if(refVelMotor3<=0.4){
+    refVelMotor3 = 0.4;
+  }
+}
+void limitVelMotor4(){
+  if(refVelMotor4>=0.7){
+      refVelMotor4 = 0.7;
+  }else if(refVelMotor4<=0.4){
+    refVelMotor4 = 0.4;
+  }
+}
 void moveForward(double distance){
   offCW1 = 728;
   offCC2 = 775;
@@ -156,11 +190,37 @@ void moveForward(double distance){
   offCC4 = 775;
   if (distance > 0){    
     distanceMotorsForward();
-    m1ControlSpeed(0.6,1);
-    m2ControlSpeed(0.6,-1);
-    m3ControlSpeed(0.6,1);
-    m4ControlSpeed(0.6,-1);
+    double errorAngle = robotAngle;
+    double pidAngle = 0.002*errorAngle;
+
+
+    if(errorAngle != prevErrorAngle){
+        angularPosition=0;
+        prevAngularPosition=0;
+       
+        refVelMotor2+=pidAngle;
+        refVelMotor4+=pidAngle;
+        refVelMotor1 -= pidAngle;
+        refVelMotor3 -= pidAngle;
+    }
+    prevErrorAngle= errorAngle;
+    limitVelMotor1();
+    limitVelMotor2();
+    limitVelMotor3();
+    limitVelMotor4();
+    
+    printf("ref 1 %f ",refVelMotor1);
+    printf(" ref 2 %f ",refVelMotor2);
+    printf(" ref 3 %f ",refVelMotor3);
+    printf(" ref 4 %f\n",refVelMotor4);
+
+    m1ControlSpeed(refVelMotor1,1);
+    m2ControlSpeed(refVelMotor2,-1);
+    m3ControlSpeed(refVelMotor3,1);
+    m4ControlSpeed(refVelMotor4,-1);
+
     motorsForward();
+  
     // dualMotorPIDControl();
     //motorsForward();
     // distanceMotorsForward();
@@ -172,7 +232,6 @@ void moveForward(double distance){
     // motorsPIControlPosition(errorX1_X2);
     
     double finalPos = (posx1 + posx2)/2;
-    printf("Final pos %f\n",posx1);
     if (finalPos >= distance){
       motorStop();
       sleep_ms(10000);
@@ -222,10 +281,9 @@ void updateAngle(){
     //  printf("window %lf\n ",windowTime);
     // prevTime=currentTime;
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131;
-    double angle = (prevAngularPosition + (angularVelocity*0.002));
+    double angle = (prevAngularPosition + (angularVelocity*0.0022));
     prevAngularPosition = angle;
     angularPosition = angle > 0 ? angle*1.125: angle*1;
-    printf(" angle %d \n",angle);
     // Actualiza ángulo cada 10°
     if (angularPosition>=2){
       prevAngularPosition = 0;
@@ -237,4 +295,6 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
+  
+
 }

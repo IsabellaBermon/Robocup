@@ -117,8 +117,8 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 void m1ControlSpeed(double velRef, int turn){
   
   double error = velRef - velMotor1;
-  double pid = 6*error + 1.3*(error-prevErrorVel1);
-  printf("pid %f ",pid);
+  double pid = 5*error + 0.8*(error-prevErrorVel1);
+
   if(error != prevErrorVel1){
     if(error > 0){
       adjustMotorSpeed(1, pid > 0 ? -turn*pid : turn*pid);  
@@ -132,8 +132,8 @@ void m1ControlSpeed(double velRef, int turn){
 
 void m2ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor2;
-  double pid = 6*error + 1.3*(error-prevErrorVel2);
-  printf("pid %f ",pid);
+  double pid = 5*error + 0.8*(error-prevErrorVel2);
+
   if(error != prevErrorVel2){
     if(error > 0){
       adjustMotorSpeed(2, pid > 0 ? -turn*pid : turn*pid);  
@@ -146,8 +146,8 @@ void m2ControlSpeed(double velRef,int turn){
 }
 void m3ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor3;
-  double pid = 6*error + 1.3*(error-prevErrorVel3);
-  printf("pid %f ",pid);
+  double pid = 5*error + 0.8*(error-prevErrorVel3);
+
   if(error != prevErrorVel3){
     if(error > 0){
       adjustMotorSpeed(3, pid > 0 ? turn*pid : -turn*pid);  
@@ -160,8 +160,8 @@ void m3ControlSpeed(double velRef,int turn){
 }
 void m4ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor4;
-  double pid = 6*error + 1.3*(error-prevErrorVel4);
-  printf("pid %f ",pid);
+  double pid = 5*error + 0.8*(error-prevErrorVel4);
+
   if(error != prevErrorVel4){
     if(error > 0){
       adjustMotorSpeed(4, pid > 0 ? -turn*pid : turn*pid);  

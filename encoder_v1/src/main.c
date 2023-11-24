@@ -15,8 +15,8 @@ void getAnglesMotors(){
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   // tca_select_channel(4);
   // updateAngle();
-  // // printf("angle 1 %d ",angleMotor1);
-  printf("angle 4 %d\n",angleMotor4);
+  // printf("angle 1 %d ",angleMotor1);
+  // printf("angle 4 %d ",angleMotor4);
 }
 
 bool interruptFlag = false;
@@ -44,32 +44,15 @@ int main(){
   getOffsets();
   //initBluetooth();    
   initMotor();
-  add_repeating_timer_us(2200,&updateAngle,NULL,&timer);
+  //add_repeating_timer_us(125,&updateAngle,NULL,&timer);
   
   while (1){
 
-    //getAnglesMotors();
-    //moveForward(1);
-    // distanceRobotCounterClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
-    // m1ControlSpeed(1,-1);
-    // motorCounterClockWise1();
-    // printf(" vel 1 %f\n",velMotor1);
-    // if(interruptFlag){
+    getAnglesMotors();
     updateAngle();
-    // printf(" angle %d \n",gyro[2]);
-    //   interruptFlag = false;
-    // }
-    // //printf("%d\n",gpio_get(4));
-   
-  // getAngleMPU();
-    // //updateAngle();
-     
-
-    // //mpu6050_read_raw(acceleration,gyro);
-    // //rotation(90);
-    // //printf("angle %lf\n ",robotAngle);
-    // //moveForward(1.5);
-
+    printf("angle %f ",robotAngle);
+  
+    moveForward(1.5);
     // if(btAvailable){
     //   continue;
     // }
