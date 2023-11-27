@@ -88,6 +88,7 @@ static void HardwareInit()
     // gpio_init(PICO_DEFAULT_LED_PIN);
     // gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     // gpio_put(PICO_DEFAULT_LED_PIN, true);
+    initBluetooth();
     stdio_init_all();
     gpio_init(4);
     gpio_set_dir(4, GPIO_IN);
@@ -98,7 +99,6 @@ static void HardwareInit()
     initI2C();
 
     getOffsets();
-    // initBluetooth();
     initMotor();
 }
 
