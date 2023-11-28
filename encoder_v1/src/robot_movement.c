@@ -209,7 +209,6 @@ void restartMovement(){
 }
 void updateAngle(){
   //uint64_t currentTime = time_us_64();
-
   mpu6050_read_raw(acceleration,gyro);
 
   if(angularFlag==true){
@@ -219,9 +218,6 @@ void updateAngle(){
     }
   }
   else {
-    // double windowTime = (currentTime - prevTime);
-    //  printf("window %lf\n ",windowTime);
-    // prevTime=currentTime;
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
     double angle = (prevAngularPosition + (angularVelocity*0.0028));
     prevAngularPosition = angle;
@@ -237,5 +233,5 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
-    printf("angle %f \n",robotAngle);
+  printf("Robot angle %lf \n",gyro[2]);
 }

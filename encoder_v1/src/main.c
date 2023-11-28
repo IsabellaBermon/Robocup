@@ -18,12 +18,9 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-  // tca_select_channel(4);
-  // updateAngle();
-  // // printf("angle 1 %d ",angleMotor1);
-  // printf("angle 4 %d\n",angleMotor4);
+//   printf("angle 1 %d ",angleMotor1);
+//   printf("angle 4 %d\n",angleMotor4);
 }
-
 
 // Function declarations
 static void HardwareInit();
@@ -46,21 +43,17 @@ int main(void)
 
     // Create tasks on the first core
     xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 3, &handleA_sensor);
-     vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
-    xReturnedA = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
-    vTaskCoreAffinitySet(handleA_motor, 1 << 0);
-    xReturnedA = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
+    vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
+    // tast2 = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
+    // vTaskCoreAffinitySet(handleA_motor, 1 << 0);
+    xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
     vTaskCoreAffinitySet(handleA_mpu, 1 << 0);
     // Create tasks on the second core
-    xReturnedB = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 1, &handleB_communication);
-    vTaskCoreAffinitySet(handleB_communication, 1 << 1);
-    xReturnedB = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);
-     // Set core affinity
-   
-    
-    
-    
-    vTaskCoreAffinitySet(handleB_strategy, 1 << 1);
+    // tast4 = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 1, &handleB_communication);
+    // vTaskCoreAffinitySet(handleB_communication, 1 << 1);
+    // tast5 = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);    
+    // vTaskCoreAffinitySet(handleB_strategy, 1 << 1);
+
     // Check return values for errors
     if (xReturnedA != pdPASS || xReturnedB != pdPASS)
     {
@@ -69,12 +62,10 @@ int main(void)
     }
 
     printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
-    printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));
+    // printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));
     printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
-    printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
-    printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
-
-   
+    // printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
+    // printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
 
     // Start FreeRTOS scheduler
     vTaskStartScheduler();
@@ -83,11 +74,6 @@ int main(void)
 
 static void HardwareInit()
 {
-    // set_sys_clock_48mhz();
-    // stdio_init_all();
-    // gpio_init(PICO_DEFAULT_LED_PIN);
-    // gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-    // gpio_put(PICO_DEFAULT_LED_PIN, true);
     initBluetooth();
     stdio_init_all();
     gpio_init(4);
@@ -95,9 +81,7 @@ static void HardwareInit()
     gpio_is_pulled_down(4);
     mpu_init();
     mpu6050_reset();
-
     initI2C();
-
     getOffsets();
     initMotor();
 }
@@ -118,76 +102,78 @@ void printTaskInfo(const char *taskName)
 
 void sensorReadingTask(void *pvParameters)
 {
-    // while (1) {
+    // TickType_t xLastWakeTime;
+    // const TickType_t xFrequency = pdMS_TO_TICKS(0.001); // Desired interval: 1 ms
+    // // Initialize the xLastWakeTime variable with the current time
+    // xLastWakeTime = xTaskGetTickCount();
+    // while (1)
+    // {
     //     printTaskInfo("Sensor Reading Task");
-    //     vTaskDelay(pdMS_TO_TICKS(1)); // Execute every 1 ms
+    //     // Wait until it's time to run again
+    //     getAnglesMotors();
+    //     vTaskDelayUntil(&xLastWakeTime, xFrequency);
     // }
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(1); // Desired interval: 1 ms
-    // Initialize the xLastWakeTime variable with the current time
-    xLastWakeTime = xTaskGetTickCount();
     while (1)
     {
-        printTaskInfo("Sensor Reading Task");
-        // Wait until it's time to run again
+        // printTaskInfo("MPU Reading Task executed");
         getAnglesMotors();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        vTaskDelay(pdMS_TO_TICKS(0.001)); // Execute every 5 ms
     }
 }
 
-void motorControlTask(void *pvParameters)
-{
-    while (1)
-    {
-        printTaskInfo("Motor Control Task executed");
-        vTaskDelay(pdMS_TO_TICKS(50)); // Execute every 50 ms
-    }
-}
+// void motorControlTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//         printTaskInfo("Motor Control Task executed");
+//         vTaskDelay(pdMS_TO_TICKS(50)); // Execute every 50 ms
+//     }
+// }
 
 void mpuReadingTask(void *pvParameters)
 {
     while (1)
     {
-        printTaskInfo("MPU Reading Task executed");
+        // printTaskInfo("MPU Reading Task executed");
         updateAngle();
-        vTaskDelay(pdMS_TO_TICKS(5)); // Execute every 5 ms
+        vTaskDelay(pdMS_TO_TICKS(2.8)); // Execute every 5 ms
     }
 }
 
-void communicationTask(void *pvParameters)
-{
-    while (1)
-    {
-        printTaskInfo("Communication Task executed");
-        if (btAvailable)
-        {
-            continue;
-        }
-        if (banAngle)
-        {
-            rotation(angleBt);
-        }
-        else if (banDistance)
-        {
-            moveForward(distanceBt);
-        }
+// void communicationTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//         printTaskInfo("Communication Task executed");
+//         if (btAvailable)
+//         {
+//             continue;
+//         }
+//         if (banAngle)
+//         {
+//             rotation(angleBt);
+//         }
+//         else if (banDistance)
+//         {
+//             moveForward(distanceBt);
+//         }
 
-        if (banStop)
-        {
-            banAngle = false;
-            banDistance = false;
-            btAvailable = true;
-            banStop = false;
-        }
-        vTaskDelay(pdMS_TO_TICKS(500)); // Execute every 500 ms
-    }
-}
+//         if (banStop)
+//         {
+//             banAngle = false;
+//             banDistance = false;
+//             btAvailable = true;
+//             banStop = false;
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(500)); // Execute every 500 ms
+//     }
+// }
 
-void strategyTask(void *pvParameters)
-{
-    while (1)
-    {
-        printTaskInfo("Strategy Task executed");
-        vTaskDelay(pdMS_TO_TICKS(100)); // Execute every 1000 ms
-    }
-}
+// void strategyTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//         printTaskInfo("Strategy Task executed");
+//         vTaskDelay(pdMS_TO_TICKS(100)); // Execute every 1000 ms
+//     }
+// }

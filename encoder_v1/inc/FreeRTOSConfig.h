@@ -49,7 +49,7 @@
 #define configUSE_TICK_HOOK                     0 // 1 if you wish to use a tick hook      0 to omit a tick hook.
 #define configCPU_CLOCK_HZ                      48000000 // frequency in Hz at which the internal clock that drives the peripheral used to generate the tick interrupt will be executing
 #define configTICK_RATE_HZ                      ( ( TickType_t ) 1000 ) //  Frequency of the RTOS tick interrupt.
-#define configMAX_PRIORITIES                    32 // The number of priorities available to the application tasks
+#define configMAX_PRIORITIES                    3 // The number of priorities available to the application tasks
 #define configMINIMAL_STACK_SIZE                ( configSTACK_DEPTH_TYPE ) 256 //The number of priorities available to the application tasks
 #define configMAX_TASK_NAME_LEN                 10 // The maximum permissible length of the descriptive name given to a task when the task is created
 #define configUSE_16_BIT_TICKS                  0
