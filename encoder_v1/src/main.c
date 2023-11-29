@@ -45,14 +45,19 @@ int main(){
   //initBluetooth();    
   initMotor();
   //add_repeating_timer_us(125,&updateAngle,NULL,&timer);
-  
+  offCW1 = 730;
+  offCC2 = 0;
+  offCW3 = 0;
+  offCC4 = 770;
   while (1){
 
     getAnglesMotors();
     updateAngle();
-    printf("angle %f ",robotAngle);
-  
-    moveForward(1.5);
+    //motorsForward();
+    distanceMotorsForward();
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 770); 
+
+    printf("Vel4 %f\n",velMotor4);
     // if(btAvailable){
     //   continue;
     // }

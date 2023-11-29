@@ -9,10 +9,10 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
-double refVelMotor1=0.5;
-double refVelMotor2=0.5;
-double refVelMotor3=0.5;
-double refVelMotor4=0.5;
+double refVelMotor1=4;
+double refVelMotor2=0.3;
+double refVelMotor3=0.3;
+double refVelMotor4=4;
 double prevErrorAngle =0;
 
 uint16_t angleMotor1 = 0;
@@ -41,13 +41,13 @@ void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
-  if((offCW1 + offset1) >= 724){
-    // if((offCW1+offset1) >= 732){
-    //   offset1 = 732-offCW1;
-    // }
+  if((offCW1 + offset1) >= 718){
+    if((offCW1+offset1) >= 733){
+      offset1 = 733-offCW1;
+    }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-4;
+    offset1=-12;
   }
 }
 void motorCounterClockWise2(){
@@ -74,10 +74,13 @@ void motorClockWise3(){
   }
 }
 void motorCounterClockWise4(){
-  if((offCC4 + offset4) <= 780){
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
+  if((offCC4 + offset4) <= 785){
+    if((offCC4 + offset4) <= 768){
+      offset4 = 768-offCC4;
+    }
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+3); 
   }else{
-    offset4 = 5;
+    offset4 = 15;
   }
 }
 void motorClockWise4(){
@@ -91,8 +94,8 @@ void motorStop(){
 }
 void motorsForward(){
   motorClockWise1();
-  motorCounterClockWise2();
-  motorClockWise3();
+  // motorCounterClockWise2();
+  // motorClockWise3();
   motorCounterClockWise4();
 }
 void motorsClockWise(){
@@ -184,44 +187,16 @@ void limitVelMotor4(){
   }
 }
 void moveForward(double distance){
-  offCW1 = 728;
-  offCC2 = 775;
-  offCW3 = 775;
-  offCC4 = 775;
+  offCW1 = 730;
+  offCC2 = 0;
+  offCW3 = 0;
+  offCC4 = 770;
   if (distance > 0){    
-    distanceMotorsForward();
-    double errorAngle = robotAngle;
-    double pidAngle = 0.002*errorAngle;
-
-
-    if(errorAngle != prevErrorAngle){
-        angularPosition=0;
-        prevAngularPosition=0;
-       
-        refVelMotor2+=pidAngle;
-        refVelMotor4+=pidAngle;
-        refVelMotor1 -= pidAngle;
-        refVelMotor3 -= pidAngle;
-    }
-    prevErrorAngle= errorAngle;
-    limitVelMotor1();
-    limitVelMotor2();
-    limitVelMotor3();
-    limitVelMotor4();
-    
-    printf("ref 1 %f ",refVelMotor1);
-    printf(" ref 2 %f ",refVelMotor2);
-    printf(" ref 3 %f ",refVelMotor3);
-    printf(" ref 4 %f\n",refVelMotor4);
-
-    m1ControlSpeed(refVelMotor1,1);
-    m2ControlSpeed(refVelMotor2,-1);
-    m3ControlSpeed(refVelMotor3,1);
-    m4ControlSpeed(refVelMotor4,-1);
-
     motorsForward();
+    distanceMotorsForward();
+    dualMotorPIDControl();
+
   
-    // dualMotorPIDControl();
     //motorsForward();
     // distanceMotorsForward();
 

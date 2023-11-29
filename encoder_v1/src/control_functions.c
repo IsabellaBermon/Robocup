@@ -62,11 +62,13 @@ void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool 
   
   uint64_t currentTimeUs = time_us_64();
 
-  bool auxTurnMotor = 0;
+
   if (angleMotor >= 350 && *banTurnsMotor){
     (*turnMotor)++;
-    auxTurnMotor = 1;
+
     *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
+    *distanceMotor = (*turnMotor)*circunference;
+    *velMotor= (circunference*10000)/(*windowTimeMotor);
 
     *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
@@ -74,25 +76,23 @@ void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool 
   else if (angleMotor <= 20){
     *banTurnsMotor = true;
   }
-  *distanceMotor = (*turnMotor)*circunference;
-  *velMotor= auxTurnMotor ? (circunference*1000)/(*windowTimeMotor) : (*velMotor);
 }
 
 void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,double *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
   uint64_t currentTimeUs = time_us_64();
-  bool auxTurnMotor = 0;
+
   if (angleMotor >= 350){
     *banTurnsMotor = true;
   }
   else if (angleMotor <= 20  && *banTurnsMotor ){
     (*turnMotor)++;
-    auxTurnMotor = 1;
+
     *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
+    *distanceMotor = (*turnMotor)*circunference;
+    *velMotor= (circunference*10000)/(*windowTimeMotor);
     *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
   }
-  *distanceMotor = (*turnMotor)*circunference;
-  *velMotor= auxTurnMotor ? (circunference*1000)/(*windowTimeMotor) : (*velMotor);
  
 }
 void adjustMotorSpeed(uint motorNumber, double adjustment) {
@@ -117,7 +117,7 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 void m1ControlSpeed(double velRef, int turn){
   
   double error = velRef - velMotor1;
-  double pid = 5*error + 0.8*(error-prevErrorVel1);
+  double pid = 0.05*error + 0*(error-prevErrorVel1);
 
   if(error != prevErrorVel1){
     if(error > 0){
@@ -132,7 +132,7 @@ void m1ControlSpeed(double velRef, int turn){
 
 void m2ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor2;
-  double pid = 5*error + 0.8*(error-prevErrorVel2);
+  double pid = 3.5*error + 0.6*(error-prevErrorVel2);
 
   if(error != prevErrorVel2){
     if(error > 0){
@@ -160,7 +160,7 @@ void m3ControlSpeed(double velRef,int turn){
 }
 void m4ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor4;
-  double pid = 5*error + 0.8*(error-prevErrorVel4);
+  double pid = 0.06*error + 0*(error-prevErrorVel4);
 
   if(error != prevErrorVel4){
     if(error > 0){
@@ -172,37 +172,45 @@ void m4ControlSpeed(double velRef,int turn){
   }
   prevErrorVel4 = error;
 }
+
+
 void dualMotorPIDControl(){
  
-  double error1_4 = (velMotor1 - velMotor4);
+  double error1_4 = (distanceMotor1 - distanceMotor4);
   //double error2_3 = (velMotor2 - velMotor3);a
+  printf("error %f ",error1_4);
+  printf("dis1 %f ",distanceMotor1);
+  printf("dis4 %f ",distanceMotor4);
 
   // double derivativoSinFiltrar = (error1_4 - previousError1_4);
   // filtroD = alpha * derivativoSinFiltrar + (1 - alpha) * filtroD;
-  integralError1_4 += error1_4;
+  integralError1_4 += error1_4; 
   //integralError2_3 += error2_3;
 
-  double pidAdjustment1_4 = 18* error1_4 + 0*integralError1_4 + 0*(error1_4 - previousError1_4);
+  double pidAdjustment1_4 = 15*error1_4 + 0*integralError1_4 + 0*(error1_4 - previousError1_4);
   //double pidAdjustment1_4 = 1.4* error1_4 + 0.001*integralError1_4 + 0.6*(error1_4 - previousError1_4);
   //double pidAdjustment2_3 = 2.2* error2_3 + 0.0002*integralError2_3 + 1* (error2_3 - previousError2_3);
   
   if(pidAdjustment1_4 > 0){
-    pidAdjustment1_4 = ceil(pidAdjustment1_4);
+    pidAdjustment1_4 = ceil(pidAdjustment1_4); 
   }else{
     pidAdjustment1_4 = floor(pidAdjustment1_4);
   }
+  printf("pid %f",pidAdjustment1_4);
+  printf(" offset1 %d",offset1);
+  printf(" offset4 %d\n",offset4);
   
   // if(pidAdjustment2_3 > 0){
   //   pidAdjustment2_3 = ceil(pidAdjustment2_3);
   // }else{
   // //   pidAdjustment2_3 = floor(pidAdjustment2_3);
   // // }
-  printf("adj1 %lf ,",pidAdjustment1_4);
-  printf("off1 %d ",offset1);
-  printf("off4 %d ",offset4);
-  printf("error1_4 %lf\n",error1_4);
+   //printf("adj1 %lf \n",pidAdjustment1_4);
+  // printf("off1 %d ",offset1);
+  // printf("off4 %d ",offset4);
+  // printf("error1_4 %lf\n",error1_4);
   
-  if(error1_4 != previousError1_4){
+  if(error1_4!=previousError1_4){
     if(error1_4 > 0){
       adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);  
       adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);        
@@ -211,7 +219,7 @@ void dualMotorPIDControl(){
       adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);  
     }
   }
-  previousError1_4 = error1_4;
+    previousError1_4 = error1_4;
   // if(error2_3 != previousError2_3){
   //   if(error2_3 > 0){
   //     adjustMotorSpeed(2, pidAdjustment2_3 > 0 ? -pidAdjustment2_3 : pidAdjustment2_3);  
