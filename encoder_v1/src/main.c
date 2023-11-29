@@ -14,49 +14,25 @@ void getAnglesMotors(){
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   tca_select_channel(4);
-  // updateAngle();
-  // printf("angle 1 %d ",angleMotor1);
-  // printf("angle 4 %d ",angleMotor4);
+
 }
-
-bool interruptFlag = false;
-void prueba(){
-  interruptFlag = true;
-}
-
-
-
 
 int main(){
   stdio_init_all();
-  gpio_init(4);
-  gpio_set_dir(4, GPIO_IN);
-  gpio_is_pulled_down(4);
   mpu_init();
   mpu6050_reset();
-  // uint8_t interrupt_enable_data[] = {0x38, 0x01}; // Registro INT_ENABLE (dirección 0x38) para habilitar la interrupción de detección de movimiento
-  // i2c_write_blocking(MPU6050_i2c,MPU6050_addr, interrupt_enable_data, sizeof(interrupt_enable_data), false);
-  // gpio_set_irq_enabled_with_callback(4,GPIO_IRQ_EDGE_RISE,true,&prueba);
-  // Configurar la función de interrupció
-  static repeating_timer_t timer;
   initI2C();
-
   getOffsets();
   //initBluetooth();    
   initMotor();
-  //add_repeating_timer_us(125,&updateAngle,NULL,&timer);
+
 
   while (1){
 
     getAnglesMotors();
     updateAngle();
-   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 725); 
-    //pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 775); // 723
-    
-
-    distanceMotorsForward();
-    printf("vel1: %f \n",velMotor4);
-    
+   
+    moveForward(2);
 
 
     // if(btAvailable){
