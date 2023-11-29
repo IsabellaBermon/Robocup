@@ -233,5 +233,5 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
-  printf("Robot angle %lf \n",gyro[2]);
+  // printf("Robot angle %d \n",gyro[2]);
 }
