@@ -184,15 +184,15 @@ void moveForward(double distance){
     printf("vel2: %f ",velMotor2);
     printf("vel3: %f \n",velMotor3);
 
-    // double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
+    double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
 
     // double errorX1_X2 = posx1-posx2;
     // // Controlador PID para ajustar la velocidad entre los pares de motores
     // motorsPIControlPosition(errorX1_X2);
     
-    // double finalPos = (posx1 + posx2)/2;
-    if (posx2 >= distance){
+    double finalPos = (posx1 + posx2)/2;
+    if (finalPos >= distance){
       motorStop();
       sleep_ms(10000);
       // restartControl();
