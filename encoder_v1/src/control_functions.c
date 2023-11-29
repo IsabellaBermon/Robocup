@@ -61,19 +61,17 @@ double prevErrorVel4 = 0;
 void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,double *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
   
   uint64_t currentTimeUs = time_us_64();
-
-
-  if (angleMotor >= 350 && *banTurnsMotor){
+  if (angleMotor >= 330 && *banTurnsMotor){
     (*turnMotor)++;
 
     *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
     *distanceMotor = (*turnMotor)*circunference;
-    *velMotor= (circunference*10000)/(*windowTimeMotor);
+    *velMotor= (circunference*1000)/(*windowTimeMotor);
 
     *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
   }
-  else if (angleMotor <= 20){
+  else if (angleMotor <= 30){
     *banTurnsMotor = true;
   }
 }
@@ -81,15 +79,15 @@ void distanceRobotCounterClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool 
 void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,double *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
   uint64_t currentTimeUs = time_us_64();
 
-  if (angleMotor >= 350){
+  if (angleMotor >= 330){
     *banTurnsMotor = true;
   }
-  else if (angleMotor <= 20  && *banTurnsMotor ){
+  else if (angleMotor <= 30  && *banTurnsMotor ){
     (*turnMotor)++;
 
     *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
     *distanceMotor = (*turnMotor)*circunference;
-    *velMotor= (circunference*10000)/(*windowTimeMotor);
+    *velMotor= (circunference*1000)/(*windowTimeMotor);
     *prevTimeUsMotor = currentTimeUs;
     *banTurnsMotor = false;
   }
@@ -115,10 +113,8 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 }
 
 void m1ControlSpeed(double velRef, int turn){
-  
   double error = velRef - velMotor1;
-  double pid = 0.05*error + 0*(error-prevErrorVel1);
-
+  double pid = 3*error + 0.8*(error-prevErrorVel1);
   if(error != prevErrorVel1){
     if(error > 0){
       adjustMotorSpeed(1, pid > 0 ? -turn*pid : turn*pid);  
@@ -132,7 +128,7 @@ void m1ControlSpeed(double velRef, int turn){
 
 void m2ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor2;
-  double pid = 3.5*error + 0.6*(error-prevErrorVel2);
+  double pid = 4*error + 1*(error-prevErrorVel2);
 
   if(error != prevErrorVel2){
     if(error > 0){
@@ -146,7 +142,7 @@ void m2ControlSpeed(double velRef,int turn){
 }
 void m3ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor3;
-  double pid = 5*error + 0.8*(error-prevErrorVel3);
+  double pid = 3*error + 0.8*(error-prevErrorVel3);
 
   if(error != prevErrorVel3){
     if(error > 0){
@@ -160,7 +156,7 @@ void m3ControlSpeed(double velRef,int turn){
 }
 void m4ControlSpeed(double velRef,int turn){
   double error = velRef - velMotor4;
-  double pid = 0.06*error + 0*(error-prevErrorVel4);
+  double pid = 3.5*error + 0.8*(error-prevErrorVel4);
 
   if(error != prevErrorVel4){
     if(error > 0){

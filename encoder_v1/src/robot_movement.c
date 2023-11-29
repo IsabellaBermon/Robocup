@@ -9,7 +9,7 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
-double refVelMotor1=4;
+double refVelMotor1=0.6;
 double refVelMotor2=0.3;
 double refVelMotor3=0.3;
 double refVelMotor4=4;
@@ -47,14 +47,17 @@ void motorClockWise1(){
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-12;
+    offset1=-20;
   }
 }
 void motorCounterClockWise2(){
-  if((offCC2 + offset2)<=780){
+  if((offCC2 + offset2)<=785){
+     if((offCC2 + offset2) <= 768){
+      offset2 = 768-offCC2;
+    }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
   }else{
-    offset2=5;
+    offset2=17;
   }
 }
 void motorClockWise2(){
@@ -66,11 +69,13 @@ void motorCounterClockWise3(){
 
 }
 void motorClockWise3(){
-  if((offCW3+offset3) <= 780){
-  
+  if((offCW3+offset3) <= 785){
+    if((offCW3 + offset3) <= 768){
+      offset3 = 768-offCW3;
+    }
     pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
   }else{
-    offset3=5;
+    offset3=17;
   }
 }
 void motorCounterClockWise4(){
@@ -78,9 +83,9 @@ void motorCounterClockWise4(){
     if((offCC4 + offset4) <= 768){
       offset4 = 768-offCC4;
     }
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4+3); 
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
   }else{
-    offset4 = 15;
+    offset4 = 17;
   }
 }
 void motorClockWise4(){
@@ -93,7 +98,7 @@ void motorStop(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
 }
 void motorsForward(){
-  motorClockWise1();
+  //motorClockWise1();
   // motorCounterClockWise2();
   // motorClockWise3();
   motorCounterClockWise4();
@@ -186,28 +191,41 @@ void limitVelMotor4(){
     refVelMotor4 = 0.4;
   }
 }
+double pt=0;
 void moveForward(double distance){
-  offCW1 = 730;
-  offCC2 = 0;
-  offCW3 = 0;
-  offCC4 = 770;
+  offCW1 = 738;
+  offCC2 = 773;
+  offCW3 = 776;
+  offCC4 = 768;
   if (distance > 0){    
     motorsForward();
     distanceMotorsForward();
-    dualMotorPIDControl();
+    // dualMotorPIDControl();
+  double ct = time_us_64();
 
-  
-    //motorsForward();
-    // distanceMotorsForward();
+    m1ControlSpeed(refVelMotor1,1);
+  if(ct-pt >= 20000000){
+
+    refVelMotor1=1.2;
+  }
+    // m4ControlSpeed(0.6,-1);
+    printf("vel1: %f \n",velMotor1);
+    // printf("vel4: %f ",velMotor4);
+
+    // m2ControlSpeed(0.7,-1);
+    // m3ControlSpeed(0.6,1);
+    // printf("vel2: %f ",velMotor2);
+    // printf("vel3: %f \n",velMotor3);
 
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
-    double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
+    // double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
+
     // double errorX1_X2 = posx1-posx2;
     // // Controlador PID para ajustar la velocidad entre los pares de motores
     // motorsPIControlPosition(errorX1_X2);
     
-    double finalPos = (posx1 + posx2)/2;
-    if (finalPos >= distance){
+    // double finalPos = (posx1 + posx2)/2;
+    if (posx1 >= distance){
       motorStop();
       sleep_ms(10000);
       // restartControl();

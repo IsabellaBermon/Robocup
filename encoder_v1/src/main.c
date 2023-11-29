@@ -13,7 +13,7 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-  // tca_select_channel(4);
+  tca_select_channel(4);
   // updateAngle();
   // printf("angle 1 %d ",angleMotor1);
   // printf("angle 4 %d ",angleMotor4);
@@ -45,19 +45,20 @@ int main(){
   //initBluetooth();    
   initMotor();
   //add_repeating_timer_us(125,&updateAngle,NULL,&timer);
-  offCW1 = 730;
-  offCC2 = 0;
-  offCW3 = 0;
-  offCC4 = 770;
+
   while (1){
 
     getAnglesMotors();
     updateAngle();
-    //motorsForward();
-    distanceMotorsForward();
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 770); 
+   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 725); 
+    //pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 775); // 723
+    
 
-    printf("Vel4 %f\n",velMotor4);
+    distanceMotorsForward();
+    printf("vel1: %f \n",velMotor4);
+    
+
+
     // if(btAvailable){
     //   continue;
     // }
