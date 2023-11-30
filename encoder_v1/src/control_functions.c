@@ -107,7 +107,7 @@ void adjustMotorSpeed(uint motorNumber, double adjustment) {
 void m1ControlSpeed(double velRef, int turn){
   double error = velRef - velMotor1;
   double pid = 0.4*error + 0.05*(error-prevErrorVel1);
-  printf("error1 %f ",error);
+
   if(error != prevErrorVel1){
     if(error > 0){
       adjustMotorSpeed(1, pid > 0 ? -turn*pid : turn*pid);  

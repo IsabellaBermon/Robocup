@@ -9,12 +9,13 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
-double refVelMotor1=7;
-double refVelMotor2=7;
-double refVelMotor3=7;
-double refVelMotor4=7;
+double refVelMotor1=10;
+double refVelMotor2=10;
+double refVelMotor3=10;
+double refVelMotor4=10;
 double prevErrorAngle =0;
 
+double prevMpuOffset = 0;
 uint16_t angleMotor1 = 0;
 uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
@@ -169,21 +170,24 @@ void moveForward(double distance){
   offCC2 = 775;
   offCW3 = 775;
   offCC4 = 775;
-  if (distance > 0){    
+  if (distance > 0){  
+    int mpuOffset = 0.5*robotAngle;
+
+    
     motorsForward();
     distanceMotorsForward();
     //dualMotorPIDControl();
-
-    m1ControlSpeed(refVelMotor1,1);
-    m4ControlSpeed(refVelMotor4,-1);
-    printf("vel1: %f ",velMotor1);
-    printf("vel4: %f \n",velMotor4);
-
-    m2ControlSpeed(refVelMotor2,-1);
-    m3ControlSpeed(refVelMotor3,1);
-    printf("vel2: %f ",velMotor2);
-    printf("vel3: %f \n",velMotor3);
-
+    if(mpuOffset > 0){
+        m2ControlSpeed(refVelMotor2+mpuOffset,-1);
+        m4ControlSpeed(refVelMotor4+mpuOffset,-1);
+        m1ControlSpeed(refVelMotor1,1);
+        m3ControlSpeed(refVelMotor3,1);
+      }else if(mpuOffset > 0){
+        m2ControlSpeed(refVelMotor2,-1);
+        m4ControlSpeed(refVelMotor4,-1);
+        m1ControlSpeed(refVelMotor1+mpuOffset,1);
+        m3ControlSpeed(refVelMotor3+mpuOffset,1);
+      }
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
 

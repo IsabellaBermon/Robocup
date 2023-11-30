@@ -32,9 +32,10 @@ int main(){
     getAnglesMotors();
     updateAngle();
    
-    moveForward(2);
-
-
+    moveForward(5);
+    printf("vel1 %f ",velMotor1);
+    printf("vel3 %f ",velMotor3);
+    printf("ang %f\n",robotAngle);
     // if(btAvailable){
     //   continue;
     // }
