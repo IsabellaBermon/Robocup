@@ -9,10 +9,10 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
-double refVelMotor1=10;
-double refVelMotor2=10;
-double refVelMotor3=10;
-double refVelMotor4=10;
+int refVelMotor1=10;
+int refVelMotor2=10;
+int refVelMotor3=10;
+int refVelMotor4=10;
 double prevErrorAngle =0;
 
 double prevMpuOffset = 0;
@@ -54,8 +54,8 @@ void motorClockWise1(){
 }
 void motorCounterClockWise2(){
   if((offCC2 + offset2)<=785){
-     if((offCC2 + offset2) <= 766){
-      offset2 = 766-offCC2;
+     if((offCC2 + offset2) <= 768){
+      offset2 = 768-offCC2;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
   }else{
@@ -167,36 +167,19 @@ void rotation(double rotationAngle){
 }
 void moveForward(double distance){
   offCW1 = 733;
-  offCC2 = 775;
+  offCC2 = 777;
   offCW3 = 775;
   offCC4 = 775;
   if (distance > 0){  
     int mpuOffset = 0.5*robotAngle;
-
     
     motorsForward();
     distanceMotorsForward();
-    //dualMotorPIDControl();
-    if(mpuOffset > 0){
-        m2ControlSpeed(refVelMotor2+mpuOffset,-1);
-        m4ControlSpeed(refVelMotor4+mpuOffset,-1);
-        m1ControlSpeed(refVelMotor1,1);
-        m3ControlSpeed(refVelMotor3,1);
-      }else if(mpuOffset > 0){
-        m2ControlSpeed(refVelMotor2,-1);
-        m4ControlSpeed(refVelMotor4,-1);
-        m1ControlSpeed(refVelMotor1+mpuOffset,1);
-        m3ControlSpeed(refVelMotor3+mpuOffset,1);
-      }
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
-
-    // double errorX1_X2 = posx1-posx2;
-    // // Controlador PID para ajustar la velocidad entre los pares de motores
-    // motorsPIControlPosition(errorX1_X2);
-    
     double finalPos = (posx1 + posx2)/2;
     if (finalPos >= distance){
+      
       motorStop();
       sleep_ms(10000);
       // restartControl();
@@ -207,6 +190,22 @@ void moveForward(double distance){
       //banStop=true;
 
     }
+    //dualMotorPIDControl();
+    if(mpuOffset == 0){
+      m2ControlSpeed(refVelMotor2,-1);
+      m4ControlSpeed(refVelMotor4,-1);
+      m1ControlSpeed(refVelMotor1,1);
+      m3ControlSpeed(refVelMotor3,1);
+    }else{
+      m2ControlSpeed(refVelMotor2+mpuOffset/2,-1);
+      m1ControlSpeed(refVelMotor1-mpuOffset/2,1);
+      m4ControlSpeed(refVelMotor4,-1);
+      m3ControlSpeed(refVelMotor3,1);
+    }
+
+    motorsForward();
+    distanceMotorsForward();
+   
   }
 }
 void restartMovement(){
