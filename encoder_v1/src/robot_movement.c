@@ -9,6 +9,13 @@ uint16_t offCC2 = 780;
 uint16_t offCC3 = 720;
 uint16_t offCC4 = 774;
 
+int refVelMotor1=10;
+int refVelMotor2=10;
+int refVelMotor3=10;
+int refVelMotor4=10;
+double prevErrorAngle =0;
+
+double prevMpuOffset = 0;
 uint16_t angleMotor1 = 0;
 uint16_t angleMotor2 = 0;
 uint16_t angleMotor3 = 0;
@@ -31,25 +38,28 @@ double robotAngle = 0;
 bool angularFlag = true;
 int offsetZ;
 int16_t acceleration[3], gyro[3],temp;
+
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
 void motorClockWise1(){
   if((offCW1 + offset1) >= 718){
-    if((offCW1+offset1) >= 732){
-      offset1 = 732-offCW1;
+    if((offCW1+offset1) >= 742){
+      offset1 = 742-offCW1;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
-    offset1=-6;
+    offset1=-15;
   }
 }
 void motorCounterClockWise2(){
-  if((offCC2 + offset2)<=790){
-    if((offCC2+offset2)<=772){
-      offset2= 772-offCC2;
+  if((offCC2 + offset2)<=785){
+     if((offCC2 + offset2) <= 768){
+      offset2 = 768-offCC2;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
+  }else{
+    offset2=12;
   }
 }
 void motorClockWise2(){
@@ -61,21 +71,23 @@ void motorCounterClockWise3(){
 
 }
 void motorClockWise3(){
-  if((offCW3+offset3) <= 790){
-    if((offCW3+offset3)<=760){
-      offset3 = 760-offCW3;
+  if((offCW3+offset3) <= 785){
+    if((offCW3 + offset3) <= 766){
+      offset3 = 766-offCW3;
     }
-    pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3+4); // 780
+    pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCW3 + offset3); // 780
+  }else{
+    offset3=10;
   }
 }
 void motorCounterClockWise4(){
-  if((offCC4 + offset4) <= 788){
-    if((offCC4 + offset4)<= 768){
-        offset4 = 768-offCC4;
+  if((offCC4 + offset4) <= 785){
+    if((offCC4 + offset4) <= 766){
+      offset4 = 766-offCC4;
     }
     pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCC4 + offset4); 
   }else{
-    offset4 = 6;
+    offset4 = 10;
   }
 }
 void motorClockWise4(){
@@ -89,8 +101,8 @@ void motorStop(){
 }
 void motorsForward(){
   motorClockWise1();
-  //motorCounterClockWise2();
-  //motorClockWise3();
+  motorCounterClockWise2();
+  motorClockWise3();
   motorCounterClockWise4();
 }
 void motorsClockWise(){
@@ -154,39 +166,48 @@ void rotation(double rotationAngle){
   }
 }
 void moveForward(double distance){
-  offCW1 = 724;
-  offCC2 = 0;
-  offCW3 = 0;
-  offCC4 = 782;
-  if (distance > 0){    
-    motorsForward();
-    // distanceMotorsForward();
-    // dualMotorPIDControl();
-    //motorsForward();
-    // distanceMotorsForward();
-
-    double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
-     //double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
-    // double errorX1_X2 = posx1-posx2;
-    // // Controlador PID para ajustar la velocidad entre los pares de motores
-    // motorsPIControlPosition(errorX1_X2);
+  offCW1 = 733;
+  offCC2 = 777;
+  offCW3 = 775;
+  offCC4 = 775;
+  if (distance > 0){  
+    int mpuOffset = 0.5*robotAngle;
     
-    // double finalPos = (posx1 + posx2)/2;
-    printf("Final pos %f\n",posx1);
-    if (posx1 >= distance){
+    motorsForward();
+    distanceMotorsForward();
+    double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
+    double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
+    double finalPos = (posx1 + posx2)/2;
+    if (finalPos >= distance){
+      
       motorStop();
-      //sleep_ms(10000);
-      restartControl();
-      restartMovement();
-      resetFilter();
+      sleep_ms(10000);
+      // restartControl();
+      // restartMovement();
+      // resetFilter();
 
-      getOffsets();
-      banStop=true;
+      // getOffsets();
+      //banStop=true;
 
     }
+    //dualMotorPIDControl();
+    if(mpuOffset == 0){
+      m2ControlSpeed(refVelMotor2,-1);
+      m4ControlSpeed(refVelMotor4,-1);
+      m1ControlSpeed(refVelMotor1,1);
+      m3ControlSpeed(refVelMotor3,1);
+    }else{
+      m2ControlSpeed(refVelMotor2+mpuOffset/2,-1);
+      m1ControlSpeed(refVelMotor1-mpuOffset/2,1);
+      m4ControlSpeed(refVelMotor4,-1);
+      m3ControlSpeed(refVelMotor3,1);
+    }
+
+    motorsForward();
+    distanceMotorsForward();
+   
   }
 }
-
 void restartMovement(){
   angleMotor1 = 0;
   angleMotor2 = 0;
@@ -209,8 +230,8 @@ void restartMovement(){
 }
 void updateAngle(){
   //uint64_t currentTime = time_us_64();
-  mpu6050_read_raw(acceleration,gyro);
 
+  mpu6050_read_raw(acceleration,gyro);
   if(angularFlag==true){
     offsetZ = filter_median_moving(gyro[2]);
     if (index_media==9){
@@ -218,10 +239,13 @@ void updateAngle(){
     }
   }
   else {
-    angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131; 
-    double angle = (prevAngularPosition + (angularVelocity*0.0028));
+    // double windowTime = (currentTime - prevTime);
+    //  printf("window %lf\n ",windowTime);
+    // prevTime=currentTime;
+    angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131;
+    double angle = (prevAngularPosition + (angularVelocity*0.0022));
     prevAngularPosition = angle;
-    angularPosition = angle > 0 ? angle*1: angle*1;
+    angularPosition = angle > 0 ? angle*1.125: angle*1;
     // Actualiza ángulo cada 10°
     if (angularPosition>=2){
       prevAngularPosition = 0;
@@ -233,5 +257,6 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
-  // printf("Robot angle %d \n",gyro[2]);
+  
+
 }

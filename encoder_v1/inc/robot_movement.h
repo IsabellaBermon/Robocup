@@ -1,7 +1,6 @@
 #ifndef ROBOT_MOVEMENT_H
 #define ROBOT_MOVEMENT_H
 
-#include <stdint.h>
 #include "control_functions.h"
 #include "motor_config.h"
 #include "encoder.h"

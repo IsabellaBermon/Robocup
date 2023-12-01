@@ -8,6 +8,7 @@
 #include "robot_movement.h"
 #include "bt_functions.h"
 
+
 SemaphoreHandle_t mutex;
 void getAnglesMotors(){
   tca_select_channel(0);
@@ -18,18 +19,18 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-//   printf("angle 1 %d ",angleMotor1);
-//   printf("angle 4 %d\n",angleMotor4);
+  tca_select_channel(4);
+
 }
 
 // Function declarations
 static void HardwareInit()
 {
-    initBluetooth();
+    //initBluetooth();
     stdio_init_all();
-    gpio_init(4);
-    gpio_set_dir(4, GPIO_IN);
-    gpio_is_pulled_down(4);    
+    //gpio_init(4);
+    //gpio_set_dir(4, GPIO_IN);
+    //gpio_is_pulled_down(4);    
     mpu_init();
     mpu6050_reset();
     initI2C();
@@ -42,48 +43,92 @@ void mpuReadingTask(void *pvParameters);
 void communicationTask(void *pvParameters);
 // void strategyTask(void *pvParameters);
 
-int main(void)
-{
-    
-    BaseType_t xReturnedA, xReturnedB,xReturnedC;
-    HardwareInit();
-    while (!stdio_usb_connected())
-        ;
-    sleep_ms(1000);
-    mutex = xSemaphoreCreateMutex();
-    TaskHandle_t handleA_sensor, handleA_motor, handleA_mpu;
-    TaskHandle_t handleB_communication, handleB_strategy;
 
-    // Create tasks on the first core
-    xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 3, &handleA_sensor);
-    vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
-    // tast2 = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
-    // vTaskCoreAffinitySet(handleA_motor, 1 << 0);
-    xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
-    vTaskCoreAffinitySet(handleA_mpu, 1 << 0);
-    // Create tasks on the second core
-    xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, &handleB_communication);
-    vTaskCoreAffinitySet(handleB_communication, 1 << 1);
-    // tast5 = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);    
-    // vTaskCoreAffinitySet(handleB_strategy, 1 << 1);
 
-    // Check return values for errors
-    if (xReturnedA != pdPASS || xReturnedB != pdPASS)
-    {
-        printf("Error creating tasks\n");
-        panic_unsupported();
-    }
+int main(){
 
-    printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
-    // printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));
-    printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
-    // printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
-    // printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
+  BaseType_t xReturnedA, xReturnedB,xReturnedC;
+  HardwareInit();
+  // stdio_init_all();
+  // mpu_init();
+  // mpu6050_reset();
+  // initI2C();
+  // getOffsets();
+  // //initBluetooth();    
+  // initMotor();
 
-    // Start FreeRTOS scheduler
-    vTaskStartScheduler();
-    panic_unsupported();
-}
+  while (!stdio_usb_connected())
+      ;
+  sleep_ms(1000);
+  mutex = xSemaphoreCreateMutex();
+  TaskHandle_t handleA_sensor, handleA_motor, handleA_mpu;
+  TaskHandle_t handleB_communication, handleB_strategy;
+
+  // Create tasks on the first core
+  xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 3, &handleA_sensor);
+  vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
+  // tast2 = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
+  // vTaskCoreAffinitySet(handleA_motor, 1 << 0);
+  xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
+  vTaskCoreAffinitySet(handleA_mpu, 1 << 0);
+  // Create tasks on the second core
+  xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, &handleB_communication);
+  vTaskCoreAffinitySet(handleB_communication, 1 << 1);
+  // tast5 = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);    
+  // vTaskCoreAffinitySet(handleB_strategy, 1 << 1);
+
+  // Check return values for errors
+  if (xReturnedA != pdPASS || xReturnedB != pdPASS)
+  {
+      printf("Error creating tasks\n");
+      panic_unsupported();
+  }
+
+  printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
+  // printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));
+  printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
+  // printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
+  // printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
+
+  // Start FreeRTOS scheduler
+  vTaskStartScheduler();
+  panic_unsupported();
+
+  // while (1){
+
+  //   getAnglesMotors();
+  //   updateAngle();
+  //   //pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 780); // 780
+  //   moveForward(1.5);
+  //   // printf("vel1 %f ",velMotor1);
+  //   printf("vel1 %d\n",velMotor1);
+  //   // printf("ang %f\n",robotAngle);
+  //   // if(btAvailable){
+  //   //   continue;
+  //   // }
+
+  //   // if(banAngle){
+  //   //   rotation(angleBt);
+  //   // }else if(banDistance){
+  //   //   moveForward(distanceBt);
+  //   // }
+
+  //   // if(banStop){
+  //   //   banAngle=false;
+  //   //   banDistance=false;
+  //   //   btAvailable = true;
+  //   //   banStop = false;
+      
+  //   //   }
+  // }
+
+  // return 0;
+}                       
+
+
+
+
+
 
 void vSafePrint(char *out)
 {
