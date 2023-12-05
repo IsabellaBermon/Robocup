@@ -68,5 +68,6 @@ void distanceMotorsClockWise();
 void rotation(double rotationAngle);
 void moveForward(double distance);
 void restartMovement();
+void circularMovement(double r,int angle);
 void updateAngle();
 #endif

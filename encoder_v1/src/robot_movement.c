@@ -208,6 +208,31 @@ void moveForward(double distance){
    
   }
 }
+
+void circularMovement(double r, int angle){
+  offCW1 = 733;
+  offCC2 = 777;
+  offCW3 = 775; 
+  offCC4 = 775;
+  motorsForward();
+  distanceMotorsForward();
+  int16_t velM24 =ceil((15/r)*(r - 0.135/2));
+  int16_t velM13 = (15/r)*(r + 0.135/2);
+  printf("ve13 %d vel24 %d\n",velM13,velM24);
+  m2ControlSpeed(velM24,-1);
+  m4ControlSpeed(velM24,-1);
+  m1ControlSpeed(velM13,1);
+  m3ControlSpeed(velM13,1);
+  double posx1 = (distanceMotor1+distanceMotor4)/2;
+
+  if(posx1>= angle*PI*r/180){
+    motorStop();
+    sleep_ms(10000);
+  }
+
+
+}
+
 void restartMovement(){
   angleMotor1 = 0;
   angleMotor2 = 0;

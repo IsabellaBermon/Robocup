@@ -23,7 +23,7 @@ int main(){
   mpu6050_reset();
   initI2C();
   getOffsets();
-  //initBluetooth();    
+  // initBluetooth();    
   initMotor();
 
 
@@ -32,9 +32,8 @@ int main(){
     getAnglesMotors();
     updateAngle();
     //pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 780); // 780
-    moveForward(1.5);
+    circularMovement(2,360);
     // printf("vel1 %f ",velMotor1);
-    printf("vel1 %d\n",velMotor1);
     // printf("ang %f\n",robotAngle);
     // if(btAvailable){
     //   continue;
