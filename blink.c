@@ -1,26 +1,5 @@
-/**
- * Copyright (c) 2022 Raspberry Pi (Trading) Ltd.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
-// demo pico w ble rc car
-// drv8833 to picow connection
-
-// gpio15 - ain2
-// gpio14 - ain1
-// gpio13 - bin1
-// gpio12 - bin2
-// 3.3v   - stby
-// gnd    - gnd
-// 5v     - vm
-
-// steering motor connection to drv8833
-// ao1 and ao2
-
-// rear motor connection to drv8833
-// bo2 and bo1
-
+// Implementación BLE.
+// Barcelona FC
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,37 +18,56 @@
 #include "hardware/clocks.h"
 #include "hardware/pwm.h"
 
+// Inclusión de bibliotecas estándar de C y bibliotecas relacionadas con Bluetooth y PWM.
+
+// Variables globales para manejar el identificador de conexión y registros de Bluetooth.
 static hci_con_handle_t con_handle = HCI_CON_HANDLE_INVALID;
 static btstack_context_callback_registration_t send_request;
 static btstack_packet_callback_registration_t  hci_event_callback_registration;
 
+// Variables para identificar el slice (bloque de PWM) y el canal de salida.
 uint slice, channel;
 
+// Función para detener el carro
 void stop(){
-    pwm_set_chan_level(slice,channel,750);
-    gpio_put(12,0);
-    gpio_put(14,0);
-    gpio_put(15,0);
-    printf("Stop");}
+    pwm_set_chan_level(slice, channel, 750);
+    gpio_put(12, 0);
+    gpio_put(14, 0);
+    gpio_put(15, 0);
+    printf("Stop");
+}
 
+// Función para mover el carro hacia adelante
 void forward(){
-    gpio_put(12,1);
-    pwm_set_chan_level(slice,channel,1000);
-    printf("Forward");}
+    gpio_put(12, 1);
+    pwm_set_chan_level(slice, channel, 1000);
+    printf("Forward");
+}
 
+// Función para mover el carro hacia atrás
 void reverse(){
-	gpio_put(12,0);
-	pwm_set_chan_level(slice,channel,500);
-    printf("Reverse");}
+    gpio_put(12, 0);
+    pwm_set_chan_level(slice, channel, 500);
+    printf("Reverse");
+}
 
+// Función para mover el carro hacia adelante y a la izquierda
 void forward_left(){
-	gpio_put(14,1); gpio_put(15,0); forward();
-    printf("Forward_left");}
-	
-void forward_right(){
-	gpio_put(14,0); gpio_put(15,1); forward();
-    printf("Forward_right");}
+    gpio_put(14, 1);
+    gpio_put(15, 0);
+    forward();
+    printf("Forward_left");
+}
 
+// Función para mover el coche hacia adelante y a la derecha
+void forward_right(){
+    gpio_put(14, 0);
+    gpio_put(15, 1);
+    forward();
+    printf("Forward_right");
+}
+
+// Datos de anuncio Bluetooth (nombre del dispositivo y UUID del servicio)
 const uint8_t adv_data[] = {
     // Flags general discoverable, BR/EDR not supported
     2, BLUETOOTH_DATA_TYPE_FLAGS, 0x06, 
@@ -80,12 +78,12 @@ const uint8_t adv_data[] = {
 };
 const uint8_t adv_data_len = sizeof(adv_data);
 
+// Manejo de paquetes Bluetooth HCI
 static void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     UNUSED(channel);
     UNUSED(size);
 
-    if (packet_type != HCI_EVENT_PACKET) return
-    ;
+    if (packet_type != HCI_EVENT_PACKET) return;
 
     switch (hci_event_packet_get_type(packet)) {
         case HCI_EVENT_DISCONNECTION_COMPLETE:
@@ -96,6 +94,7 @@ static void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
     }
 }
 
+// Manejo de paquetes para el servicio GATT (Generic Attribute Profile) SPP (Serial Port Profile)
 static void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     UNUSED(channel);
     switch (packet_type){
@@ -114,14 +113,15 @@ static void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uin
             }
             break;
         case RFCOMM_DATA_PACKET:
+            // Manejo de datos recibidos a través del servicio SPP
+            // Aquí se procesan y se imprimen los datos según el formato esperado
+            // (puede requerir ajustes según la estructura real de los datos)
             printf("%.*s\n", packet);
-            char outputBuffer[256];  // Búfer para almacenar la salida
+            
+            // Procesamiento adicional de los datos recibidos, para reconocimiento de giro 
+            char outputBuffer[256];
             char* lista[10];
-            // Utiliza snprintf para formatear la cadena y guardarla en outputBuffer
             snprintf(outputBuffer, sizeof(outputBuffer), "%.*s\n", (int)size, (char*)packet);
-
-            //printf("Salida capturada: %s", outputBuffer); // Imprime la salida capturada
-                // Divide la cadena en tokens separados por comas
             char* token = strtok(outputBuffer, ",");
             int i = 0;
             while (token != NULL) {
@@ -129,85 +129,68 @@ static void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uin
                 token = strtok(NULL, ",");
                 i++;
             }
-            
-            // Imprime los valores separados por comas
             for (int j = 0; j < i; j++) {
                 printf("Elemento %d: %s\n", j, lista[j]);
             }
-
             if (lista[0][0] == 'G') {
                 float angulo = atof(lista[1]);
-                uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
-                sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
+                uint8_t valorStr[20];
+                sprintf(valorStr, "%s", lista[0]);
                 printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
             }
-
-            else
-            {
+            else {
                 float valor = atof(lista[1]);
                 uint8_t mono[20];
                 sprintf(mono, "%s", lista[0]);
-                printf("Estoy sisas: %f, %s\n", valor, mono);
+                printf("Estoy: %f, %s\n", valor, mono);
             }
-            
-
-
-
-
-            
-        //    switch(packet[0]) {
-		// 	   case 0x73: printf_hexdump(packet, size);         break; // 's'
-		// 	   case 0x66: printf_hexdump(packet, size);      break; // 'f'
-		// 	   case 0x62: printf_hexdump(packet, size);      break; // 'b'
-		// 	   case 0x6c: printf_hexdump(packet, size); break; // 'l'
-		// 	   case 0x72: printf_hexdump(packet, size);break; // 'r'
-        //        default: 
-
-        //                 printf("Recibe: ");
-        //                 // printf_hexdump(packet, size);
-        //                 printf("%.*s\n", size, packet);
-
-
-        //     }
-        //     break;
+            break;
         default:
             break;
     }
 }
 
 int main() {
+    // Configuración inicial del hardware y variables
     stdio_init_all();
-    
     gpio_init(12);
     gpio_init(14);
     gpio_init(15);
-    gpio_set_dir(12,GPIO_OUT);
-    gpio_set_dir(14,GPIO_OUT);
-    gpio_set_dir(15,GPIO_OUT);                      
+    gpio_set_dir(12, GPIO_OUT);
+    gpio_set_dir(14, GPIO_OUT);
+    gpio_set_dir(15, GPIO_OUT);
     gpio_set_function(12, GPIO_FUNC_PWM);
+
+    // Obtener el número de slice y canal PWM a partir del pin GPIO 12
     slice = pwm_gpio_to_slice_num(12);
     channel = pwm_gpio_to_channel(12);
-    pwm_set_clkdiv(slice, 250.0f);  //slowdown clock
-    pwm_set_wrap(slice, 10000);      //wrap time    
+
+    // Configuración del bloque PWM
+    pwm_set_clkdiv(slice, 250.0f);  // Ralentizar el reloj
+    pwm_set_wrap(slice, 10000);      // Tiempo de envoltura    
     pwm_set_enabled(slice, true);
-    
+
+    // Detener el carro por un breve período al inicio
     sleep_ms(100);
     stop();
-    
- if (cyw43_arch_init()) {
+
+    // Inicialización del controlador CYW43 (Bluetooth)
+    if (cyw43_arch_init()) {
         printf("failed to initialise cyw43_arch\n");
         return -1;
     }
-  
-  
+
+    // Registro de devolución de llamada para manejar eventos HCI (Host Controller Interface)
     hci_event_callback_registration.callback = &hci_packet_handler;
     hci_add_event_handler(&hci_event_callback_registration);
-    
+
+    // Inicialización de servicios Bluetooth
     l2cap_init();
     sm_init();
     att_server_init(profile_data, NULL, NULL);
     nordic_spp_service_server_init(&nordic_spp_packet_handler);
 
+    // Configuración de parámetros de anuncio Bluetooth
     uint16_t adv_int_min = 0x0030;
     uint16_t adv_int_max = 0x0030;
     uint8_t adv_type = 0;
@@ -216,10 +199,13 @@ int main() {
     gap_advertisements_set_params(adv_int_min, adv_int_max, adv_type, 0, null_addr, 0x07, 0x00);
     gap_advertisements_set_data(adv_data_len, (uint8_t*) adv_data);
     gap_advertisements_enable(1);
-    
 
-	hci_power_control(HCI_POWER_ON);
- 
+    // Encender el controlador Bluetooth
+    hci_power_control(HCI_POWER_ON);
+
+    // Ejecutar el bucle de eventos de Bluetooth
     btstack_run_loop_execute();
+
     return 0;
 }
+
