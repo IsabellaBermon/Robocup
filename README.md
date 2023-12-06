@@ -1,2 +1,10 @@
+# Telemetría
+En el contexto de las evaluaciones de Telemetría, se procedió a implementar la tecnología Bluetooth Low Energy (BLE) en la plataforma Raspberry Pi Pico W. En una fase inicial, se lleva a cabo la inicialización y configuración del controlador CYW43, encargado de la gestión de la conectividad Bluetooth del dispositivo. Posteriormente, se procede a la inicialización de servicios Bluetooth, específicamente el Servicio de Perfil de Puerto Serie (SPP), permitiendo así la instauración de una comunicación serial entre dispositivos. En este proceso, se realizan ajustes en los parámetros de anuncio Bluetooth, los cuales abarcan la designación del dispositivo y el identificador UUID del servicio.
+
+Como parte integral de las pruebas, se realiza un test que implica el control de motores. En consecuencia, se hace uso de funciones de modulación por ancho de pulsos (PWM) con el propósito de regular la velocidad y dirección de los motores. En el ámbito del procesamiento de datos, se implementa un protocolo de manipulación de paquetes Bluetooth, facilitando la interpretación de datos recibidos a través del servicio SPP mencionado con anterioridad. Con el fin de discernir la acción de giro, se lleva a cabo un procesamiento específico, consistente en la identificación de una cadena 'G' acompañada del correspondiente valor de giro.
+
+En consonancia con las características de BLE, que emplea perfiles y servicios Generic Attribute Profile (GATT) para estructurar y describir la información compartida entre dispositivos, se procede a la compilación del archivo respectivo junto con el proyecto en cuestión.
+
+Es importante subrayar que la aplicación desarrollada mediante App Inventor ha sido concebida con valores UUID idénticos, garantizando así una conexión coherente con la Raspberry Pi Pico W. Asimismo, se destaca que la elección de la tecnología BLE se fundamenta en su capacidad para reducir el consumo energético, aspecto crucial para dispositivos alimentados por batería.
 # Robocup
 <img src= "interfaz_app.jpg"> 
