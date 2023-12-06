@@ -6,3 +6,5 @@ El sistema mecánico implementado es una variante adaptada del diseño original 
 Para la generación de la rotación del rodillo, se emplean tres engranajes. Uno de ellos está directamente conectado al motor, mientras que otro transmite el movimiento al tercer engranaje, que a su vez incorpora el rodillo. Esta disposición permite que la dirección de la rotación determine si la bola es retenida o, por el contrario, impulsada hacia adelante. Esta funcionalidad específica se detalla en la figura siguiente.
 
 ![sistema_engranajes](https://github.com/IsabellaBermon/Robocup/assets/42179443/bfad6449-e231-4523-a75e-ce0f1927f051)
+
+La sección inferior cumple la función de retener la bola, acompañándola durante su desplazamiento en el campo de juego. En contraste con la versión original, se ha prescindido del sistema de pateo, ya que esta funcionalidad ha sido reemplazada por el diseño modificado del rodillo. En este diseño, el eje permanece fijo en las partes laterales del sistema, permitiendo que el rodillo gire sobre él de manera independiente.
