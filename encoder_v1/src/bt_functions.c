@@ -7,8 +7,11 @@ btstack_packet_callback_registration_t  hci_event_callback_registration;
 
 double angleBt = 0;
 double distanceBt = 0;
+double angleTurnBt = 0;
+double radioBt = 0;
 bool btAvailable = true;
 bool banAngle = false;
+bool banCircularMovement=false;
 bool banDistance = false;
 
 const uint8_t adv_data[] = {
@@ -97,20 +100,24 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
         if (*lista[0] == 'G') {
           angleBt = atof(lista[1]);
           banAngle = true;
-          printf("entro G\n");
+          robotAngle = 0;
+          prevAngularPosition = 0;
+          angularVelocity= 0;
+          angularPosition =0;
+          printf("Entra G\n");
           // uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
           // sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
           // printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
         }else if(*lista[0] == 'D'){
           distanceBt = atof(lista[1]);
           banDistance = true;
-          printf("entro D\n");
+          printf("Entra D\n");
 
-        }else{
-            float valor = atof(lista[1]);
-            uint8_t mono[20];
-            sprintf(mono, "%s", lista[0]);
-            printf("Estoy sisas: %f, %s\n", valor, mono);
+        }else if(*lista[0] == 'C'){
+            radioBt = atof(lista[1]);
+            angleTurnBt = atof(lista[2]);
+            banCircularMovement=true;
+            printf("Entra C: %f, %f\n",radioBt,angleTurnBt);
         }    
         btAvailable = false; 
       }

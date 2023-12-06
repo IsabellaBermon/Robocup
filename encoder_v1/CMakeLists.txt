@@ -26,6 +26,7 @@ add_executable(encoder_v1 src/main.c
                         src/control_functions.c
                         src/robot_movement.c
                         src/bt_functions.c
+                        src/MPU6050_i2c.c
                         )
 
 pico_set_program_name(encoder_v1 "encoder_v1")

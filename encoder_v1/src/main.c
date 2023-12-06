@@ -3,26 +3,6 @@
 #include "bt_functions.h"
 
 
-
-bool timer_callback(repeating_timer_t *t){
-  tca_select_channel(0);
-  angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
-  tca_select_channel(1);
-  angleMotor2 = angleSubtraction(getAngle(),offsetAngleMotor2);
-  tca_select_channel(2);
-  angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
-  tca_select_channel(3);
-  angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
-  return true;
-}
-
-void restartRobot(){
-  restartControl();
-  restartMovement();
-  getOffsets();
-}
-
-
 void getAnglesMotors(){
   tca_select_channel(0);
   angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
@@ -32,6 +12,7 @@ void getAnglesMotors(){
   angleMotor3 = angleSubtraction(getAngle(),offsetAngleMotor3);
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
+  tca_select_channel(4);
 }
 
 
@@ -39,35 +20,45 @@ void getAnglesMotors(){
 
 int main(){
   stdio_init_all();
-
-  static repeating_timer_t timer;
+  mpu_init();
+  mpu6050_reset();
   initI2C();
   getOffsets();
-  initMotor();
-  //add_repeating_timer_us(200,&timer_callback,NULL,&timer);
   initBluetooth();    
+  initMotor();
+
+  calibrate();
 
   while (1){
-    getAnglesMotors();
-    printf("bt %d\n",btAvailable);
+
+    if(!banStop){
+      getAnglesMotors();
+      updateAngle();
+    }
+    // //pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 780); // 780
+    // // circularMovement(2,360);
+
+
+    printf("ang %f\n",robotAngle);
     if(btAvailable){
       continue;
     }
-    printf("ya llegaron datos\n");
 
     if(banAngle){
       rotation(angleBt);
     }else if(banDistance){
       moveForward(distanceBt);
+    }else if(banCircularMovement){
+      circularMovement(radioBt,angleTurnBt);
     }
-
     if(banStop){
       banAngle=false;
       banDistance=false;
+      banCircularMovement=false;
       btAvailable = true;
       banStop = false;
+      
     }
-    //moveForward(1);
   }
 
   return 0;

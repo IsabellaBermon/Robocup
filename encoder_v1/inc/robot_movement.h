@@ -4,7 +4,9 @@
 #include "control_functions.h"
 #include "motor_config.h"
 #include "encoder.h"
+#include "MPU6050_i2c.h"
 #include <math.h>
+
 
 #define PI 3.14159265358979323846
 
@@ -34,9 +36,17 @@ extern bool banTurnsMotor3;
 extern bool banTurnsMotor4;
 
 extern bool banStop;
+extern double angularPosition; 
+extern double prevAngularPosition;
+extern double angularVelocity;
+extern double robotAngle;
+extern bool angularFlag;
+
+extern int offsetZ;
+extern int16_t acceleration[3], gyro[3],temp;
+extern float offsetXa;
+extern float offsetYa;
 // Coeficientes del controlador PID
-
-
 
 extern double Kp_pair;
 extern double Ki_pair;
@@ -59,4 +69,7 @@ void distanceMotorsClockWise();
 void rotation(double rotationAngle);
 void moveForward(double distance);
 void restartMovement();
+void circularMovement(double r,int angle);
+void calibrate();
+void updateAngle();
 #endif

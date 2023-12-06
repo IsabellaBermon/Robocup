@@ -12,6 +12,7 @@
 #include "pico/btstack_cyw43.h"
 #include "ble/gatt-service/nordic_spp_service_server.h"
 #include "btstack.h"
+#include "robot_movement.h"
 
 
 
@@ -23,8 +24,11 @@ extern const uint8_t adv_data[];
 
 extern double angleBt;
 extern double distanceBt;
+extern double angleTurnBt;
+extern double radioBt;
 extern bool banAngle;
 extern bool banDistance;
+extern bool banCircularMovement;
 extern bool btAvailable;
 
 
