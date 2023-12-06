@@ -44,7 +44,8 @@ extern bool angularFlag;
 
 extern int offsetZ;
 extern int16_t acceleration[3], gyro[3],temp;
-
+extern float offsetXa;
+extern float offsetYa;
 // Coeficientes del controlador PID
 
 extern double Kp_pair;
@@ -69,5 +70,6 @@ void rotation(double rotationAngle);
 void moveForward(double distance);
 void restartMovement();
 void circularMovement(double r,int angle);
+void calibrate();
 void updateAngle();
 #endif

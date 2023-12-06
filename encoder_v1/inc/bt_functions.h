@@ -24,8 +24,11 @@ extern const uint8_t adv_data[];
 
 extern double angleBt;
 extern double distanceBt;
+extern double angleTurnBt;
+extern double radioBt;
 extern bool banAngle;
 extern bool banDistance;
+extern bool banCircularMovement;
 extern bool btAvailable;
 
 

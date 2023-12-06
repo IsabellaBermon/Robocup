@@ -223,40 +223,40 @@ void dualMotorPIDControl(){
 }
 
 void dualMotorPDControlRotation(){
-  motorAngle1 = distanceMotor1/radio;
-  motorAngle2 = distanceMotor2/radio;
-  motorAngle3 = distanceMotor3/radio;
-  motorAngle4 = distanceMotor4/radio;
-  printf("ma1: %lf ",motorAngle1);
-  printf("ma2: %lf ",motorAngle2);
-  printf("ma3: %lf ",motorAngle3);
-  printf("ma4: %lf\n",motorAngle4);
+
+
   double error1_4 = motorAngle1 - motorAngle4;
   double error2_3 = motorAngle2 - motorAngle3;
 
-  // double pidAdjustment1_4 = (Kp_r) * error1_4  + Kd_r * (error1_4 - previousError1_4);
-  // double pidAdjustment2_3 = Kp_r * error2_3 +  Kd_r* (error2_3 - previousError2_3);
-  integralError1_4 += error1_4;
-  integralError2_3 += error2_3;
-  previousError1_4 = error1_4;
-  previousError2_3 = error2_3;
+  double pidAdjustment1_4 = (0.15) * error1_4  + 0.1 * (error1_4 - previousError1_4);
+  double pidAdjustment2_3 = 0.15 * error2_3 +  0.1* (error2_3 - previousError2_3);
+
   // printf("adj1 %lf ,",pidAdjustment1_4);
   // printf("error1_4 %lf ,",error1_4);
   // printf("error2_3 %lf ,",error2_3);
   // printf("adj2 %lf\n",pidAdjustment2_3);
-  // if(error1_4 > 0){
-  //   adjustMotorSpeed(1, pidAdjustment1_4);  // Reducir la velocidad del motor 1 si el error es positivo
-  // }else{
+ if(error1_4!=previousError1_4){
+    if(error1_4 > 0){
+      adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);  
+      adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);        
+    }else if(error1_4<0){
+      adjustMotorSpeed(1, pidAdjustment1_4 > 0 ? -pidAdjustment1_4 : pidAdjustment1_4);  
+      adjustMotorSpeed(4, pidAdjustment1_4 > 0 ? pidAdjustment1_4 : -pidAdjustment1_4);  
+    }
+  }
+  if(error2_3 != previousError2_3){
+    if(error2_3 > 0){
+      adjustMotorSpeed(2, pidAdjustment2_3 > 0 ? pidAdjustment2_3 : -pidAdjustment2_3);  
+      adjustMotorSpeed(3, pidAdjustment2_3 > 0 ? pidAdjustment2_3 : -pidAdjustment2_3);        
+    }else if(error2_3<0){
+      adjustMotorSpeed(2, pidAdjustment2_3 > 0 ? -pidAdjustment2_3 : pidAdjustment2_3);  
+      adjustMotorSpeed(3, pidAdjustment2_3 > 0 ? -pidAdjustment2_3 : pidAdjustment2_3);  
+    }
+  }
 
-  //   adjustMotorSpeed(4, pidAdjustment1_4);   // Aumentar la velocidad del motor 4 si el error es positivo
-  // }
-  // if(error2_3 > 0){
-
-  // adjustMotorSpeed(2, pidAdjustment2_3);  // Reducir la velocidad del motor 2 si el error es positivo
-  // }else{
-
-  // adjustMotorSpeed(3, -pidAdjustment2_3);   // Aumentar la velocidad del motor 3 si el error es positivo
-  // }
+  previousError1_4 = error1_4;
+  previousError2_3 = error2_3;
+  
 }
 
 void restartControl(){
@@ -264,6 +264,10 @@ void restartControl(){
   distanceMotor2 = 0;
   distanceMotor3 = 0;
   distanceMotor4 = 0;
+  velMotor1=0;
+  velMotor2=0;
+  velMotor3=0;
+  velMotor4=0;
   motorAngle1=0;
   motorAngle2=0;
   motorAngle3=0;
@@ -278,6 +282,14 @@ void restartControl(){
   previousError2_3 = 0;
   previousErrorAngle = 0;
   integralErrorAngle = 0; 
-  previousErrorAngle = 0;
-  integralErrorAngle = 0;
+  prevErrorVel1 = 0;
+  prevErrorVel2 = 0;
+  prevErrorVel3 = 0;
+  prevErrorVel4 = 0;
+  
+  prevTimeUsMotor1=0;
+  prevTimeUsMotor2=0;
+  prevTimeUsMotor3=0;
+  prevTimeUsMotor4=0;
+
 }

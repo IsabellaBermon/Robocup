@@ -3,7 +3,6 @@
 #include "bt_functions.h"
 
 
-
 void getAnglesMotors(){
   tca_select_channel(0);
   angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
@@ -14,8 +13,10 @@ void getAnglesMotors(){
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   tca_select_channel(4);
-
 }
+
+
+
 
 int main(){
   stdio_init_all();
@@ -23,35 +24,41 @@ int main(){
   mpu6050_reset();
   initI2C();
   getOffsets();
-  // initBluetooth();    
+  initBluetooth();    
   initMotor();
 
+  calibrate();
 
   while (1){
 
-    getAnglesMotors();
-    updateAngle();
-    //pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 780); // 780
-    circularMovement(2,360);
-    // printf("vel1 %f ",velMotor1);
-    // printf("ang %f\n",robotAngle);
-    // if(btAvailable){
-    //   continue;
-    // }
+    if(!banStop){
+      getAnglesMotors();
+      updateAngle();
+    }
+    // //pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 780); // 780
+    // // circularMovement(2,360);
 
-    // if(banAngle){
-    //   rotation(angleBt);
-    // }else if(banDistance){
-    //   moveForward(distanceBt);
-    // }
 
-    // if(banStop){
-    //   banAngle=false;
-    //   banDistance=false;
-    //   btAvailable = true;
-    //   banStop = false;
+    printf("ang %f\n",robotAngle);
+    if(btAvailable){
+      continue;
+    }
+
+    if(banAngle){
+      rotation(angleBt);
+    }else if(banDistance){
+      moveForward(distanceBt);
+    }else if(banCircularMovement){
+      circularMovement(radioBt,angleTurnBt);
+    }
+    if(banStop){
+      banAngle=false;
+      banDistance=false;
+      banCircularMovement=false;
+      btAvailable = true;
+      banStop = false;
       
-    //   }
+    }
   }
 
   return 0;
