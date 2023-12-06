@@ -6,5 +6,3 @@ Como parte integral de las pruebas, se realiza un test que implica el control de
 En consonancia con las características de BLE, que emplea perfiles y servicios Generic Attribute Profile (GATT) para estructurar y describir la información compartida entre dispositivos, se procede a la compilación del archivo respectivo junto con el proyecto en cuestión.
 
 Es importante subrayar que la aplicación desarrollada mediante App Inventor ha sido concebida con valores UUID idénticos, garantizando así una conexión coherente con la Raspberry Pi Pico W. Asimismo, se destaca que la elección de la tecnología BLE se fundamenta en su capacidad para reducir el consumo energético, aspecto crucial para dispositivos alimentados por batería.
-# Robocup
-<img src= "interfaz_app.jpg"> 
