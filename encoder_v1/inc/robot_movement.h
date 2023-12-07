@@ -1,3 +1,13 @@
+/**
+ * @file robot_movement.h
+ * @brief Funciones y variable para el movimiento del robot.
+ *
+ * Este archivo de cabecera declara funciones y variables externas para la gestión del movimiento del robot.
+ * Incluye funciones para controlar los movimientos básicos de los motores, realizar movimientos complejos como
+ * rotación sobre le mismo eje, desplazamiento circular y avances en linea recta
+ */
+
+
 #ifndef ROBOT_MOVEMENT_H
 #define ROBOT_MOVEMENT_H
 
