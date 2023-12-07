@@ -17,13 +17,9 @@
 
 El repositorio está organizado en varias ramas, cada una correspondiente a una parte específica del proyecto. A continuación, se proporciona una visión general de la estructura y el desarrollo en cada una de las áreas clave.
 
-### Rama 'Mecánica'
-
-En la rama 'Mecánica', se encuentran todos los archivos relacionados con el diseño mecánico del robot. Los archivos CAD, tales como la carpeta `rueda` y `dribble`, están disponibles para la impresión 3D. Adiconalmente se explica el sistema a implementar en el caso de dribble.
-
 ### Rama 'Odometría'
 
-La rama 'Odometría' contiene el desarrollo del firmware para la Raspberry Pi Pico. El archivo `main.c` es el punto central de este desarrollo. En este archivo, se implementan las funciones y lógica para los movimientos del robot, como giros y desplazamientos. Es necesario comprender que el códgio se divide por secciones. Se crearon archivos por aparte para el control de los motores, lectura de datos de los encoders, lectura de la mpu, control del robot por movimiento y las funciones de control PD para los movimientos del motor.
+La rama 'Odometría' contiene el desarrollo del firmware para la Raspberry Pi Pico. El archivo `main.c` es el punto central de este desarrollo. En este archivo, se implementan las funciones y lógica para los movimientos del robot, como giros y desplazamientos. Es necesario comprender que el códgio se divide por secciones. Se crearon archivos por aparte para el control de los motores correspondiente a 'motor_config', lectura de datos de los encoders 'encoder', lectura de la mpu 'MPU6050_I2C', control del robot por movimiento 'robot_movement' y las funciones de control PD para los movimientos del motor 'control_functions'. Cabe reslatar que esta rama ya cuenta con la implementación de la telemetría.
 
 ### Rama 'Telemetría'
 
@@ -33,4 +29,10 @@ La rama 'Telemetría' aborda la implementación de la telemetría del robot por 
 
 En la rama 'App', se desarrolla la aplicación móvil. Aquí, se encuentran los archivos relacionados con la interfaz gráfica de usuario (GUI) y la lógica de comunicación mediante Bluetooth por medio de la herramienta MIT APP inventor. Adicionalmente se encuentra la aplicación lista para su descarga con el nombre 'BLE_Robocup_v3.apk'
 
+
+### Rama 'Mecánica'
+
+En la rama 'Mecánica', se encuentran todos los archivos relacionados con el diseño mecánico del robot. Los archivos CAD, tales como la carpeta `rueda` y `dribble`, están disponibles para la impresión 3D. Adiconalmente se explica el sistema a implementar en el caso de dribble.
+
+### Montaje físico actual
 <img src= "Montaje.png" width="800" height="1170">
