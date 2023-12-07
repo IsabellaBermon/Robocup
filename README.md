@@ -4,9 +4,9 @@ Esta aplicacion permite indicar al robot de forma inalambrica que moviemientos r
 La aplicación es diseñada usando MIT AppInventor y consta de diferentes secciones. La primera permite el escaneo, conexión y desconexión de la Raspberry Pi Pico W al dispositivo movil usando BT BLE. 
 Las siguientes corresponden al envio de valores para los diferentes tipos de movimientos:
 
-+ **Giro**: recibe un entero correspondiente a el angulo de giro en grados.
-+ **Desplazamiento**: se indica con un entero la cantidad de metros que el robot debe desplazarse en linea recta.
-+ **Circular**: se indica radio y angulo del movimiento, el cual consiste en describir una circunferencia.
++ **Giro sobre su propio eje**: recibe un entero correspondiente a el angulo de giro en grados.
++ **Desplazamiento en línea recta**: se indica con un entero la cantidad de metros que el robot debe desplazarse en linea recta.
++ **Desplazamiento en movimiento circular**: se indica radio y angulo del movimiento, el cual consiste en describir una circunferencia.
 + **Disparo**: adicionalmente se implementa un boton para realizar la acción de pateo.
 
 ## Instrucciones de uso.
