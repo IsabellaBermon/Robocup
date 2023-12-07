@@ -35,4 +35,4 @@ En la rama 'App', se desarrolla la aplicación móvil. Aquí, se encuentran los 
 En la rama 'Mecánica', se encuentran todos los archivos relacionados con el diseño mecánico del robot. Los archivos CAD, tales como la carpeta `rueda` y `dribble`, están disponibles para la impresión 3D. Adiconalmente se explica el sistema a implementar en el caso de dribble.
 
 ### Montaje físico actual
-<img src= "Montaje.png" width="800" height="1170">
+<img src= "Montaje.png" width="300" height="370">
