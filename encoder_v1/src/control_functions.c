@@ -1,3 +1,11 @@
+/**
+ * @file control_functions.c
+ * @brief Funciones de control para el movimiento y velocidad de los motores del robot.
+ *
+ * Este archivo contiene funciones que calculan la distancia recorrida, velocidad y ajustes finos
+ * de velocidad para los motores del robot. También incluye funciones para reiniciar los parámetros
+ * de control y variables de estado de los motores.
+ */
 #include "control_functions.h"
 
 double distanceMotor1 = 0;
@@ -44,6 +52,7 @@ double prevErrorVel1 = 0;
 double prevErrorVel2 = 0;
 double prevErrorVel3 = 0;
 double prevErrorVel4 = 0;
+
 /**
  * @brief Calcula la distancia recorrida y la velocidad del robot en sentido contrario a las agujas del reloj.
  *
@@ -105,7 +114,6 @@ void distanceRobotCounterClockWise(uint16_t angleMotor, uint16_t *turnMotor, boo
  *       de giros por la circunferencia de la trayectoria del motor.
  */
 void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,int *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
-
   if (angleMotor >= 330){
     *banTurnsMotor = true;
   }
@@ -116,12 +124,10 @@ void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTur
       *windowTimeMotor = (currentTimeUs - (*prevTimeUsMotor))/1000;
       *velMotor= (circunference*100000)/(*windowTimeMotor);
       *prevTimeUsMotor = currentTimeUs;
-
     }
     *distanceMotor = (*turnMotor)*circunference;
     *banTurnsMotor = false;
-  }
- 
+  } 
 }
 
 /**
@@ -277,8 +283,7 @@ void restartControl(){
   prevErrorVel1 = 0;
   prevErrorVel2 = 0;
   prevErrorVel3 = 0;
-  prevErrorVel4 = 0;
-  
+  prevErrorVel4 = 0;  
   prevTimeUsMotor1=0;
   prevTimeUsMotor2=0;
   prevTimeUsMotor3=0;

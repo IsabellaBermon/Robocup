@@ -1,5 +1,12 @@
-
-
+/**
+ * @file robot_movement.c
+ * @brief Implementación de funciones para el control de movimiento del robot.
+ *
+ * Este archivo contiene la implementación de funciones para el control del movimiento del robot,
+ * incluyendo funciones para girar, avanzar, realizar movimientos circulares, y gestionar el giroscopio
+ * y acelerómetro para la actualización del ángulo de orientación del robot.
+ * Además, se definen variables globales y constantes utilizadas en el control de movimiento.
+ */
 #include "robot_movement.h"
 
 #define N_SAMPLES 100            ///< Número de muestras para el filtro del acelerometro.

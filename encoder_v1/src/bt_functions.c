@@ -1,9 +1,15 @@
+/**
+ * @file bt_functions.c
+ * @brief Funciones relacionadas con la configuración y manejo de Bluetooth.
+ *
+ * Este archivo contiene funciones para la inicialización y manejo de las comunicaciones Bluetooth,
+ * así como la interpretación de paquetes específicos del servicio Nordic SPP.
+ */
 #include "bt_functions.h"
 #include "mygatt.h"
 hci_con_handle_t con_handle = HCI_CON_HANDLE_INVALID;
 btstack_context_callback_registration_t send_request;
 btstack_packet_callback_registration_t  hci_event_callback_registration;
-
 
 double angleBt = 0;
 double distanceBt = 0;
