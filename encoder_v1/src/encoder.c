@@ -1,3 +1,13 @@
+/**
+ * @file encoder.c
+ * @brief Control de encoders AS5600 a través de I2C para un robot.
+ *
+ * Este archivo contiene funciones para inicializar la comunicación I2C con los encoders AS5600,
+ * leer el ángulo crudo de los encoders, seleccionar canales en un multiplexor TCA9548A,
+ * obtener y convertir el ángulo crudo a grados, restar un offset de un ángulo y obtener offsets
+ * de ángulo para cada motor.
+ */
+
 #include <stdio.h>
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"

@@ -1,3 +1,10 @@
+/**
+ * @file motor_config.h
+ * @brief Configuración y funciones para el control de motores.
+ *
+ * Este archivo de cabecera proporciona la configuración de pines y funciones necesarias
+ * para el control de motores utilizando la Raspberry Pi Pico.
+ */
 #ifndef MOTOR_CONFIG_H
 #define MOTOR_CONFIG_H
 
@@ -10,9 +17,9 @@
 #define PWM_PIN3 12 // pin 16   SLICE 6 CH A
 #define PWM_PIN4 13 // pin 17   SLICE 6 CH B
 
-extern uint slice_num_5;
-extern uint slice_num_6;
-void initMotor();
+extern uint slice_num_5; ///< Número de la slice para PWM relacionada con los pines 10 y 11.
+extern uint slice_num_6; ///< Número de la slice para PWM relacionada con los pines 12 y 13.
 
+void initMotor();
 
 #endif

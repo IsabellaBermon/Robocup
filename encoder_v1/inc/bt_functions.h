@@ -14,8 +14,6 @@
 #include "btstack.h"
 #include "robot_movement.h"
 
-
-
 extern hci_con_handle_t con_handle;
 extern btstack_context_callback_registration_t send_request;
 extern btstack_packet_callback_registration_t  hci_event_callback_registration;
@@ -30,8 +28,6 @@ extern bool banAngle;
 extern bool banDistance;
 extern bool banCircularMovement;
 extern bool btAvailable;
-
-
 
 void initBluetooth();
 void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);

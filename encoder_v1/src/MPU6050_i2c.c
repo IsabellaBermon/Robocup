@@ -11,12 +11,10 @@
 #include "hardware/i2c.h"
 #include "MPU6050_i2c.h"
 
-
 /// Buffer y variables para el filtro de mediana móvil.
 int gyro_z_readings[WINDOW_SIZE] = {0};
 int index_media = 0;
 int sum = 0;
-
 
 /**
  * @brief Inicializa la interfaz I2C para la comunicación con el MPU6050.
@@ -49,7 +47,6 @@ void mpu6050_reset() {
  */
 void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3]) {
     uint8_t buffer[6];
-
     uint8_t val = 0x3B;
     i2c_write_timeout_us(MPU6050_i2c, MPU6050_addr, &val, sizeof(val), false, 1000); 
     i2c_read_timeout_us(MPU6050_i2c, MPU6050_addr, buffer, sizeof(buffer), false, 1000);
@@ -66,7 +63,6 @@ void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3]) {
     gyro[1] = (buffer[2] << 8) | buffer[3];
     gyro[2] = (buffer[4] << 8) | buffer[5];
 }
-
 
 /**
  * @brief Aplica un filtro de mediana móvil a una nueva lectura de giroscopio.
