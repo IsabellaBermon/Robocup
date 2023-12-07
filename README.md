@@ -33,4 +33,4 @@ La rama 'Telemetría' aborda la implementación de la telemetría del robot por 
 
 En la rama 'App', se desarrolla la aplicación móvil. Aquí, se encuentran los archivos relacionados con la interfaz gráfica de usuario (GUI) y la lógica de comunicación mediante Bluetooth por medio de la herramienta MIT APP inventor. Adicionalmente se encuentra la aplicación lista para su descarga con el nombre 'BLE_Robocup_v3.apk'
 
-<img src= "Montaje.jpg" width="540" height="1170">
+<img src= "Montaje.png" width="540" height="1170">
