@@ -1,55 +1,57 @@
+
+
 #include "robot_movement.h"
 
-#define N_SAMPLES 100
-#define ACCEL_SCALE_FACTOR 16384.0
+#define N_SAMPLES 100            ///< Número de muestras para el filtro del acelerometro.
+#define ACCEL_SCALE_FACTOR 16384.0 ///< Factor de escala para datos del acelerómetro.
 // Variables para almacenar los offsets
 
-double wTimeUpdateAngle = 0.0022;
+double wTimeUpdateAngle = 0.0022; ///< Intervalo de tiempo para la actualización del ángulo.
 
-float offsetXa = 0, offsetYa = 0;
-uint16_t offCW1 = 726;
-uint16_t offCW2 = 720;
-uint16_t offCW3 = 780;
-uint16_t offCW4 = 720;
-uint16_t offCC1 = 780;
-uint16_t offCC2 = 780;
-uint16_t offCC3 = 720;
-uint16_t offCC4 = 774;
+float offsetXa = 0, offsetYa = 0;///< Offsets para el acelerómetro en los ejes X e Y.
+uint16_t offCW1 = 726; ///< Offset para el motor 1 en sentido horario.
+uint16_t offCW2 = 720; ///< Offset para el motor 2 en sentido horario.
+uint16_t offCW3 = 780; ///< Offset para el motor 3 en sentido horario.
+uint16_t offCW4 = 720; ///< Offset para el motor 4 en sentido horario.
+uint16_t offCC1 = 780; ///< Offset para el motor 1 en sentido antihorario.
+uint16_t offCC2 = 780; ///< Offset para el motor 2 en sentido antihorario. 
+uint16_t offCC3 = 720; ///< Offset para el motor 3 en sentido antihorario.
+uint16_t offCC4 = 774; ///< Offset para el motor 4 en sentido antihorario.
 
-int refVelMotor1=9;
-int refVelMotor2=9;
-int refVelMotor3=9;
-int refVelMotor4=9;
-double prevErrorAngle =0;
+int refVelMotor1=9;///< Velocidad de referencia para el motor 1
+int refVelMotor2=9;///< Velocidad de referencia para el motor 2
+int refVelMotor3=9;///< Velocidad de referencia para el motor 3
+int refVelMotor4=9;///< Velocidad de referencia para el motor 4
+double prevErrorAngle =0; ///< Error angular previo para control PID o similar.
 
-double prevMpuOffset = 0;
-uint16_t angleMotor1 = 0;
-uint16_t angleMotor2 = 0;
-uint16_t angleMotor3 = 0;
-uint16_t angleMotor4 = 0;
+double prevMpuOffset = 0; ///< Offset previo del MPU
+uint16_t angleMotor1 = 0;///< Ángulo acumulado del motor 1.
+uint16_t angleMotor2 = 0;///< Ángulo acumulado del motor 2.
+uint16_t angleMotor3 = 0;///< Ángulo acumulado del motor 3.
+uint16_t angleMotor4 = 0;///< Ángulo acumulado del motor 4.
 
-uint16_t turnMotor1 = 0;
-uint16_t turnMotor2 = 0;
-uint16_t turnMotor3 = 0;
-uint16_t turnMotor4 = 0;
+uint16_t turnMotor1 = 0; ///< Contador de giros del motor 1.
+uint16_t turnMotor2 = 0;  ///< Contador de giros del motor 2.
+uint16_t turnMotor3 = 0;  ///< Contador de giros del motor 3.
+uint16_t turnMotor4 = 0;  ///< Contador de giros del motor 4.
 
-bool banTurnsMotor1 = 0;
-bool banTurnsMotor2 = 0;
-bool banTurnsMotor3 = 0;
-bool banTurnsMotor4 = 0;
+bool banTurnsMotor1 = 0; ///< Indicador de control de giros para el motor 1.
+bool banTurnsMotor2 = 0; ///< Indicador de control de giros para el motor 2.
+bool banTurnsMotor3 = 0;///< Indicador de control de giros para el motor 3.
+bool banTurnsMotor4 = 0;///< Indicador de control de giros para el motor 4.
 
-bool banStop = false;
+bool banStop = false; ///< Indicador de detención del movimiento.
 
-int ax, ay;
-int prevAy=10000000;
+int ax, ay;///< Valores de aceleración en ejes X e Y.
+int prevAy=10000000;///< Valor previo de aceleración en eje Y para control.
 
-int64_t prevTime = 0;
-double angularPosition=0, prevAngularPosition=0;
-double angularVelocity;
-double robotAngle = 0;
-bool angularFlag = true;
-int offsetZ;
-int16_t acceleration[3], gyro[3],temp;
+
+double angularPosition=0, prevAngularPosition=0; ///< Posición angular actual y previa.
+double angularVelocity; ///< Velocidad angular calculada.
+double robotAngle = 0; ///< Ángulo total acumulado del robot.
+bool angularFlag = true; ///< Flag para control del calculo del offset.
+int offsetZ;///< Offset para el giroscopio en eje Z.
+int16_t acceleration[3], gyro[3];
 
 
 
@@ -69,7 +71,6 @@ void motorCounterClockWise1(){
  *
  * Establece el nivel PWM para el motor 1 para girarlo en sentido de las agujas del reloj.
  * Utiliza el offset predefinido 'offCW1' y un offset ajustable 'offset1'.
- * Restringe el valor del offset para mantenerse dentro de un rango específico.
  */
 void motorClockWise1(){
   if((offCW1 + offset1) >= 718){
@@ -81,6 +82,12 @@ void motorClockWise1(){
     offset1=-15;
   }
 }
+/**
+ * @brief Gira el motor 2 en sentido contrario a las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 2 para girarlo en sentido contrario a las agujas del reloj.
+ * Utiliza el offset predefinido 'offCC2' y un offset ajustable 'offset2'.
+ */
 void motorCounterClockWise2(){
   if((offCC2 + offset2)<=785){
      if((offCC2 + offset2) <= 768){
@@ -91,14 +98,32 @@ void motorCounterClockWise2(){
     offset2=12;
   }
 }
+/**
+ * @brief Gira el motor 2 en sentido de las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 1 para girarlo en sentido de las agujas del reloj.
+ * Utiliza el offset predefinido 'offCW2' y un offset ajustable 'offset2'.
+ */
 void motorClockWise2(){
 
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
 }
+/**
+ * @brief Gira el motor 3 en sentido contrario a las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 3 para girarlo en sentido contrario a las agujas del reloj.
+ * Utiliza el offset predefinido 'offCC3' y un offset ajustable 'offset3'.
+ */
 void motorCounterClockWise3(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, offCC3 + offset3); //700
 
 }
+/**
+ * @brief Gira el motor 3 en sentido de las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 1 para girarlo en sentido de las agujas del reloj.
+ * Utiliza el offset predefinido 'offCW3' y un offset ajustable 'offset3'.
+ */
 void motorClockWise3(){
   if((offCW3+offset3) <= 785){
     if((offCW3 + offset3) <= 766){
@@ -109,6 +134,12 @@ void motorClockWise3(){
     offset3=10;
   }
 }
+/**
+ * @brief Gira el motor 4 en sentido contrario a las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 4 para girarlo en sentido contrario a las agujas del reloj.
+ * Utiliza el offset predefinido 'offCC4' y un offset ajustable 'offset4'.
+ */
 void motorCounterClockWise4(){
   if((offCC4 + offset4) <= 785){
     if((offCC4 + offset4) <= 766){
@@ -119,6 +150,12 @@ void motorCounterClockWise4(){
     offset4 = 10;
   }
 }
+/**
+ * @brief Gira el motor 4 en sentido de las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 4 para girarlo en sentido de las agujas del reloj.
+ * Utiliza el offset predefinido 'offCW4' y un offset ajustable 'offset4'.
+ */
 void motorClockWise4(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 + offset4); // 720
 }
