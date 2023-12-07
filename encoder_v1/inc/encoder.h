@@ -1,5 +1,5 @@
 /**
- * @file sensor_interface.h
+ * @file encoder.h
  * @brief Interfaz para la comunicación con sensores AS5600 y TCA9548A.
  *
  * Este archivo proporciona funciones y definiciones necesarias para la comunicación

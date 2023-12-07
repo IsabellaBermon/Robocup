@@ -1,5 +1,5 @@
 /**
- * @file mpu6050_interface.h
+ * @file MPU6050_i2c.h
  * @brief Interfaz para la comunicación con el sensor MPU6050.
  *
  * Este archivo de cabecera proporciona funciones y definiciones necesarias para la comunicación con el sensor MPU6050.
