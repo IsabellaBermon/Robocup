@@ -51,9 +51,26 @@ bool angularFlag = true;
 int offsetZ;
 int16_t acceleration[3], gyro[3],temp;
 
+
+
+/**
+ * @brief Gira el motor 1 en sentido contrario a las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 1 para girarlo en sentido contrario a las agujas del reloj.
+ * Utiliza el offset predefinido 'offCC1' y un offset ajustable 'offset1'.
+ */
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
+
+
+/**
+ * @brief Gira el motor 1 en sentido de las agujas del reloj.
+ *
+ * Establece el nivel PWM para el motor 1 para girarlo en sentido de las agujas del reloj.
+ * Utiliza el offset predefinido 'offCW1' y un offset ajustable 'offset1'.
+ * Restringe el valor del offset para mantenerse dentro de un rango específico.
+ */
 void motorClockWise1(){
   if((offCW1 + offset1) >= 718){
     if((offCW1+offset1) >= 742){
@@ -111,24 +128,52 @@ void motorStop(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
 }
+
+/**
+ * @brief Mueve todos los motores para avanzar hacia adelante.
+ *
+ * Activa los motores en una configuración que hace que el robot se mueva hacia adelante.
+ * Esto se logra girando los motores 1 y 3 en el sentido de las agujas del reloj y los motores 2 y 4 en sentido contrario.
+ */
 void motorsForward(){
   motorClockWise1();
   motorCounterClockWise2();
   motorClockWise3();
   motorCounterClockWise4();
 }
+/**
+ * @brief Gira todos los motores en el sentido de las agujas del reloj.
+ *
+ * Activa los cuatro motores para girar en el sentido de las agujas del reloj.
+ * Esta configuración hace que el robot gire sobre su eje central en el sentido de las agujas del reloj.
+ */
 void motorsClockWise(){
     motorClockWise1();
     motorClockWise2();
     motorClockWise3();
     motorClockWise4();
 }
+/**
+ * @brief Controla los motores para avanzar una distancia específica.
+ *
+ * Esta función utiliza la función 'distanceRobotClockWise' o 'distanceRobotCounterClockWise'
+ * para cada motor con el fin de avanzar una distancia determinada, controlando
+ * la rotación de cada motor en su respectiva dirección.
+ */
 void distanceMotorsForward(){
   distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
   distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2,&velMotor2,&windowTimeMotor2,&prevTimeUsMotor2);
   distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3,&velMotor3,&windowTimeMotor3,&prevTimeUsMotor3);
   distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4,&velMotor4,&windowTimeMotor4,&prevTimeUsMotor4);
 }
+
+/**
+ * @brief Controla los motores para girar el robot en el sentido de las agujas del reloj una distancia específica.
+ *
+ * Activa cada motor en el sentido de las agujas del reloj para lograr un giro coordinado
+ * del robot. Utiliza la función 'distanceRobotClockWise' para cada motor, permitiendo
+ * un control preciso de la distancia de giro.
+ */
 void distanceMotorsClockWise(){
     distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
     distanceRobotClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2,&velMotor2,&windowTimeMotor2,&prevTimeUsMotor2);
@@ -154,67 +199,83 @@ void readAndProcessAccelerometer(int *ax, int *ay) {
   *ay = (acceleration[1] - offsetYa) / ACCEL_SCALE_FACTOR * 9.81;
 
 }
-
+/**
+ * @brief Realiza la rotación del robot en base a un ángulo especificado.
+ *
+ * Esta función configura y controla los motores para rotar el robot un ángulo determinado.
+ * Modifica los parámetros de control de los motores y utiliza la función 'motorsClockWise'
+ * para iniciar la rotación. La rotación se detiene cuando el robot alcanza el ángulo deseado.
+ *
+ * @param rotationAngle Ángulo de rotación deseado en grados.
+ *                      Un valor positivo indica una rotación en el sentido de las agujas del reloj.
+ *
+ * @note La función monitorea el ángulo de rotación actual del robot ('robotAngle') y compara
+ *       este valor con el ángulo objetivo ('rotationAngle') para detener los motores una vez alcanzado
+ *       el objetivo. Utiliza 'motorStop' para detener los motores, 'restartControl' y 'restartMovement'
+ *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
+ */
 void rotation(double rotationAngle){
   wTimeUpdateAngle=0.0028;
-
+  /// Ajusta los offsets para los motores en la rotación.
   offCW1 = 738;
   offCW2 = 738;
   offCW3 = 765; 
   offCW4 = 738;
+  /// Inicia la rotación en el sentido de las agujas del reloj si el ángulo es positivo.
   if(rotationAngle > 0){
     motorsClockWise();
-    //distanceMotorsClockWise();
-    // motorAngle1 = distanceMotor1/radio;
-    // motorAngle2 = distanceMotor2/radio;
-    // motorAngle3 = distanceMotor3/radio;
-    // motorAngle4 = distanceMotor4/radio;
-    // double motorAngle1_4 =(motorAngle1 + motorAngle4)/2;
-    // double motorAngle2_3 = (motorAngle2 + motorAngle3)/2;
-    // double angleFinal = (motorAngle1_4+motorAngle2_3)/2;
-
-    // printf(" angle %f \n",motorAngle1_4);
+    /// Verifica si el ángulo objetivo está cerca de ser alcanzado.
     if(robotAngle+20 >=rotationAngle){
-      motorStop(); 
-      //sleep_ms(5000);
-      restartControl();
-      restartMovement(); 
-      //resetFilter();
-      getOffsets();
-      banStop=true;
+      motorStop();       ///< Detiene los motores
+      restartControl();  ///< Reinicia los controles del robot
+      restartMovement(); ///< Reinicia el movimiento
+      getOffsets();      ///< Actualiza los offsets
+      banStop = true;    ///< Indica que se ha completado la rotación
     }
-
-    //dualMotorPDControlRotation();
-
-   
-    // double angleError = motorAngle1_4 - motorAngle2_3;
-    // anglesPIDControlRotation(angleError);
-
-  
   }
 }
 
+/**
+ * @brief Mueve el robot hacia adelante una distancia específica.
+ *
+ * Esta función controla los motores para mover el robot hacia adelante la distancia especificada.
+ * Configura los offsets para los motores y utiliza 'motorsForward' y 'distanceMotorsForward'
+ * para avanzar. El movimiento se ajusta en base al ángulo actual del robot para mantener la dirección.
+ *
+ * @param distance Distancia a avanzar en unidades específicas.
+ *                 Solo se toman acciones si la distancia es mayor a cero.
+ *
+ * @note La función calcula la posición final basándose en la distancia recorrida por los motores
+ *       y ajusta la velocidad de los motores individualmente si es necesario para mantener la dirección.
+ *       Utiliza 'motorStop' para detener los motores, 'restartControl' y 'restartMovement'
+ *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
+ */
 void moveForward(double distance){
+  /// Ajusta los offsets para los motores en movimiento hacia adelante.
   offCW1 = 733;
   offCC2 = 777;
   offCW3 = 775;
   offCC4 = 775;
   wTimeUpdateAngle=0.0022;
   if (distance > 0){  
-    int mpuOffset = robotAngle;
+    int mpuOffset = robotAngle;///< Offset basado en el ángulo actual del robot.
     
-    motorsForward();
-    distanceMotorsForward();
+    motorsForward(); ///< Inicia el movimiento hacia adelante.
+    distanceMotorsForward(); ///< Controla la distancia a avanzar.
+
+
+    /// Calcula la posición final basada en la distancia recorrida.
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
     double finalPos = (posx1 + posx2)/2;
     if(finalPos >= distance){
-      motorStop();
-      restartControl();
-      restartMovement(); 
-      getOffsets();
-      banStop=true;
+      motorStop();      ///< Detiene los motores
+      restartControl(); ///< Reinicia los controles del robot
+      restartMovement();///< Reinicia el movimiento
+      getOffsets();     ///< Actualiza los offsets
+      banStop = true;   ///< Indica que se ha completado el movimiento
     }else{
+      /// Ajusta la velocidad de los motores en función del ángulo actual.
       if(mpuOffset == 0){
         m2ControlSpeed(refVelMotor2,-1);
         m4ControlSpeed(refVelMotor4,-1);
@@ -227,67 +288,65 @@ void moveForward(double distance){
         m3ControlSpeed(refVelMotor3,1);
       }
 
-      motorsForward();
-      distanceMotorsForward();
+      motorsForward();         //< Continúa el movimiento hacia adelante.
+      distanceMotorsForward(); //< Continúa controlando la distancia a avanzar.
     }
     //dualMotorPIDControl();
  
    
   }
 }
-int errorAcc =0;
+/**
+ * @brief Realiza un movimiento circular del robot con un radio y ángulo específicos.
+ *
+ * Esta función controla los motores para mover el robot en un trayecto circular.
+ * Configura los offsets de los motores y ajusta sus velocidades para crear un movimiento circular.
+ * El movimiento se detiene una vez que el robot alcanza el ángulo de giro deseado.
+ *
+ * @param r Radio del círculo en metros.
+ * @param angle Ángulo de giro deseado en grados.
+ *
+ * @note La función calcula las velocidades para los motores de manera que los motores
+ *       en los lados opuestos del robot se mueven a velocidades diferentes, creando así un movimiento circular.
+ *       Utiliza 'motorStop' para detener los motores, 'restartControl' y 'restartMovement'
+ *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
+ */
 void circularMovement(double r, int angle){
   wTimeUpdateAngle=0.0022;
-
+  /// Ajusta los offsets para los motores en movimiento circular.
   offCW1 = 733;
   offCC2 = 777;
   offCW3 = 775; 
   offCC4 = 775;
   motorsForward();
   distanceMotorsForward();
-  //readAndProcessAccelerometer(&ax, &ay);
+  /// Calcula las velocidades para los motores basándose en el radio.
   int16_t velM24 =ceil((15/r)*(r - 0.135/2));
   int16_t velM13 = (15/r)*(r + 0.135/2);
-  // if(ay != prevAy){
-  //   if(errorAcc>= (velM13-velM24)){
-  //     errorAcc += ay;
-  //   }else{
-  //     errorAcc = velM13-velM24;
-  //   } 
-  // }
-
-  // if(ay == 0){
-  //   errorAcc=0;
-    m2ControlSpeed(velM24,-1);
-    m4ControlSpeed(velM24,-1);
-    m1ControlSpeed(velM13,1);
-    m3ControlSpeed(velM13,1);
-
-  // }else{
-  //   m2ControlSpeed(velM24,-1);
-  //   m4ControlSpeed(velM24,-1);
-  //   m1ControlSpeed(velM13+errorAcc,1);
-  //   m3ControlSpeed(velM13+errorAcc,1);
-  // }
-  // prevAy = ay;
-
+  /// Ajusta la velocidad de los motores para el movimiento circular.
+  m2ControlSpeed(velM24,-1);
+  m4ControlSpeed(velM24,-1);
+  m1ControlSpeed(velM13,1);
+  m3ControlSpeed(velM13,1);
+  ///Calcula la posición actual basada en la distancia recorrida.
   double posx1 = (distanceMotor1+distanceMotor3)/2;
 
-  if(posx1>= angle*PI*r/90){
+  if(posx1>= angle*PI*r/180){
     motorStop();
-    // sleep_ms(10000);
     restartControl();
     restartMovement();
-   // resetFilter();
     getOffsets();
     banStop=true;
   }
 
-
-
-
 }
-
+/**
+ * @brief Reinicia todos los parámetros de movimiento y ángulos del robot.
+ *
+ * Esta función restablece todos los contadores de ángulos y variables de control de movimiento
+ * a sus valores iniciales. Se utiliza para preparar el robot para un nuevo movimiento después
+ * de completar una acción o para corregir cualquier desviación acumulada en los controles.
+ */
 
 void restartMovement(){
   angleMotor1 = 0;
@@ -306,14 +365,23 @@ void restartMovement(){
   prevAngularPosition=0;
   angularVelocity=0;
   robotAngle = 0;
-
-
-  //offsetZ=0;
 }
+/**
+ * @brief Actualiza el ángulo de orientación del robot basándose en los datos del giroscopio.
+ *
+ * Esta función lee los datos crudos del giroscopio y los procesa para actualizar el ángulo de orientación
+ * del robot. Utiliza un filtro de mediana móvil para obtener un valor de compensación inicial, y luego
+ * calcula la velocidad angular y la posición angular acumulada para ajustar el ángulo del robot.
+ *
+ * @note La función se basa en un flag inicial 'angularFlag' para realizar la compensación inicial
+ *       y luego pasa al cálculo continuo de la posición angular. La velocidad angular se calcula
+ *       ajustándola con el valor de compensación y se usa para actualizar la posición angular y, por
+ *       lo tanto, el ángulo total del robot.
+ */
 void updateAngle(){
-  //uint64_t currentTime = time_us_64();
-
+  /// Lee los datos crudos del acelerómetro y giroscopio.
   mpu6050_read_raw(acceleration,gyro);
+  /// Fase inicial: calcula el offset del giroscopio
   if(angularFlag==true){
     offsetZ = filter_median_moving(gyro[2]);
     if (index_media==9){
@@ -321,14 +389,12 @@ void updateAngle(){
     }
   }
   else {
-    // double windowTime = (currentTime - prevTime);
-    //  printf("window %lf\n ",windowTime);
-    // prevTime=currentTime;
+    /// Fase de cálculo continuo: actualiza la velocidad y posición angular.
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131;
     double angle = (prevAngularPosition + (angularVelocity*wTimeUpdateAngle));
     prevAngularPosition = angle;
     angularPosition = angle > 0 ? angle*1.125: angle*1;
-    // Actualiza ángulo cada 10°
+    /// Ajusta el ángulo total del robot.
     if (angularPosition>=2){
       prevAngularPosition = 0;
       robotAngle += 2;
@@ -339,6 +405,4 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
-  
-
 }
