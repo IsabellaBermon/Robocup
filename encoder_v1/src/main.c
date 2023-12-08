@@ -9,7 +9,6 @@
 #include "robot_movement.h"
 #include "bt_functions.h"
 
-
 SemaphoreHandle_t mutex;
 void getAnglesMotors(){
   tca_select_channel(0);
@@ -21,10 +20,9 @@ void getAnglesMotors(){
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   tca_select_channel(4);
-  printf("Wheel angle 1 %d\n ",angleMotor1);
+  printf("Angle Motor1: %d\n ",angleMotor1);
   printf("Robot Angle: %f \n",robotAngle);
 //   printf("angle 2 %d\n",angleMotor2);
-
 }
 
 // Function declarations
@@ -53,8 +51,8 @@ int main(){
   BaseType_t xReturnedA, xReturnedB,xReturnedC;
   HardwareInit();
 
-  while (!stdio_usb_connected())
-      ;
+//   while (!stdio_usb_connected())
+//       ;
   sleep_ms(1000);
   mutex = xSemaphoreCreateMutex();
   TaskHandle_t handleA_sensor, handleA_motor, handleA_mpu;
@@ -62,11 +60,11 @@ int main(){
 
   // Create tasks on the first core
   xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 3, &handleA_sensor);
-  vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
+//   vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
   xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
-  vTaskCoreAffinitySet(handleA_mpu, 1 << 1);
+//   vTaskCoreAffinitySet(handleA_mpu, 1 << 1);
   xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, &handleB_communication);
-  vTaskCoreAffinitySet(handleB_communication, 1 << 1);
+//   vTaskCoreAffinitySet(handleB_communication, 1 << 1);
   // tast2 = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
   // vTaskCoreAffinitySet(handleA_motor, 1 << 0);  
   // tast5 = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);    
@@ -79,9 +77,9 @@ int main(){
       panic_unsupported();
   }
 
-  printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
-  printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
-  printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
+//   printf("Task A_sensor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_sensor));
+//   printf("Task A_mpu on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_mpu));
+//   printf("Task B_communication on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_communication));
   // printf("Task A_motor on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleA_motor));  
   // printf("Task B_strategy on core %lu\n", (unsigned long)vTaskCoreAffinityGet(handleB_strategy));
 
@@ -110,7 +108,9 @@ void sensorReadingTask(void *pvParameters)
     while (1)
     {
         // printTaskInfo("Encoders Reading Task executed");
+        if(!banStop){
         getAnglesMotors();
+        }
         vTaskDelay(pdMS_TO_TICKS(1)); // Execute every 5 ms
     }
 }
@@ -129,8 +129,16 @@ void mpuReadingTask(void *pvParameters)
     while (1)
     {
         // printTaskInfo("MPU Reading Task executed");
+        if(!banStop){
         updateAngle();
-        vTaskDelay(pdMS_TO_TICKS(2.8)); // Execute every 5 ms
+        }
+        if(banAngle=true){
+            vTaskDelay(pdMS_TO_TICKS(2.8)); // Execute every 2.8 ms
+        }
+        else{
+            vTaskDelay(pdMS_TO_TICKS(2.2)); // Execute every 2.2 ms
+        }
+        
     }
 }
 
@@ -138,7 +146,6 @@ void communicationTask(void *pvParameters)
 {
     while (1)
     {
-        
         if (btAvailable)
         {
             continue;
@@ -153,15 +160,18 @@ void communicationTask(void *pvParameters)
             xSemaphoreTake(mutex, portMAX_DELAY);
             printf("Moverse una distancia %f \n",distanceBt);
             xSemaphoreGive(mutex);            
-            moveForward(1.5);
+            moveForward(distanceBt);
         }
-
+        else if(banCircularMovement){
+            circularMovement(radioBt,angleTurnBt);
+        }
         if (banStop)
         {
-            banAngle = false;
-            banDistance = false;
+            banAngle=false;
+            banDistance=false;
+            banCircularMovement=false;
             btAvailable = true;
-            banStop = false;
+            banStop = false;  
         }
         vTaskDelay(pdMS_TO_TICKS(5)); // Execute every 500 ms
     }
