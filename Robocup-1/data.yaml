@@ -1,0 +1,15 @@
+names:
+- '0'
+- '1'
+- '2'
+- Ball
+nc: 4
+roboflow:
+  license: MIT
+  project: robocup-lyidt
+  url: https://universe.roboflow.com/robocup-hdybz/robocup-lyidt/dataset/1
+  version: 1
+  workspace: robocup-hdybz
+test: ../test/images
+train: Robocup-1/train/images
+val: Robocup-1/valid/images
