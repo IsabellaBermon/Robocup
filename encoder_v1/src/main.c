@@ -4,10 +4,12 @@
 #include "semphr.h"
 #include <stdio.h>
 #include <stdint.h>
+#include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "robot_movement.h"
-#include "bt_functions.h"
+#include "lwipopts.h"
+//#include "bt_functions.h"
 
 SemaphoreHandle_t mutex;
 void getAnglesMotors(){
@@ -20,15 +22,31 @@ void getAnglesMotors(){
   tca_select_channel(3);
   angleMotor4 = angleSubtraction(getAngle(),offsetAngleMotor4);
   tca_select_channel(4);
-  printf("Angle Motor1: %d\n ",angleMotor1);
-  printf("Robot Angle: %f \n",robotAngle);
+
 //   printf("angle 2 %d\n",angleMotor2);
+}
+
+void wifiConnect(){
+
+    if (cyw43_arch_init()) {
+        printf("failed to initialise\n");
+        return;
+    }
+    cyw43_arch_enable_sta_mode();
+    printf("Connecting to Wi-Fi...\n");
+    
+    while(cyw43_arch_wifi_connect_timeout_ms("PocoX3", "jonathan10", CYW43_AUTH_WPA2_AES_PSK, 30000) != 0) {
+        printf("Attempting to connect...\n");
+    } 
+    printf("Connected.\n");
+    
+
 }
 
 // Function declarations
 static void HardwareInit()
 {
-    initBluetooth();
+    //initBluetooth();
     stdio_init_all();
     gpio_init(4);
     gpio_set_dir(4, GPIO_IN);
@@ -38,6 +56,8 @@ static void HardwareInit()
     initI2C();
     getOffsets();
     initMotor();
+
+    wifiConnect();
 }
 
 void sensorReadingTask(void *pvParameters);
@@ -63,8 +83,9 @@ int main(){
 //   vTaskCoreAffinitySet(handleA_sensor, 1 << 0);
   xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 3, &handleA_mpu);
 //   vTaskCoreAffinitySet(handleA_mpu, 1 << 1);
-  xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, &handleB_communication);
+  //xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, &handleB_communication);
 //   vTaskCoreAffinitySet(handleB_communication, 1 << 1);
+
   // tast2 = xTaskCreate(motorControlTask, "MotorControlTask", 1000, NULL, 3, &handleA_motor);
   // vTaskCoreAffinitySet(handleA_motor, 1 << 0);  
   // tast5 = xTaskCreate(strategyTask, "StrategyTask", 1000, NULL, 2, &handleB_strategy);    
@@ -132,56 +153,58 @@ void mpuReadingTask(void *pvParameters)
         if(!banStop){
         updateAngle();
         }
-        if(banAngle=true){
-            vTaskDelay(pdMS_TO_TICKS(2.8)); // Execute every 2.8 ms
-        }
-        else{
-            vTaskDelay(pdMS_TO_TICKS(2.2)); // Execute every 2.2 ms
-        }
+        // if(banAngle=true){
+        //     vTaskDelay(pdMS_TO_TICKS(2.8)); // Execute every 2.8 ms
+        // }
+        // else{
+        //     vTaskDelay(pdMS_TO_TICKS(2.2)); // Execute every 2.2 ms
+        // }
+        vTaskDelay(pdMS_TO_TICKS(2.2)); // Execute every 2.2 ms
+
         
     }
 }
 
-void communicationTask(void *pvParameters)
-{
-    while (1)
-    {
-        if (btAvailable)
-        {
-            continue;
-        }
-        if (banAngle)
-        {
-            printTaskInfo("Communication Task executed");
-            rotation(angleBt);
-        }
-        else if (banDistance)
-        {
-            xSemaphoreTake(mutex, portMAX_DELAY);
-            printf("Moverse una distancia %f \n",distanceBt);
-            xSemaphoreGive(mutex);            
-            moveForward(distanceBt);
-        }
-        else if(banCircularMovement){
-            circularMovement(radioBt,angleTurnBt);
-        }
-        if (banStop)
-        {
-            banAngle=false;
-            banDistance=false;
-            banCircularMovement=false;
-            btAvailable = true;
-            banStop = false;  
-        }
-        vTaskDelay(pdMS_TO_TICKS(5)); // Execute every 500 ms
-    }
-}
+// void communicationTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//         if (btAvailable)
+//         {
+//             continue;
+//         }
+//         if (banAngle)
+//         {
+//             printTaskInfo("Communication Task executed");
+//             rotation(angleBt);
+//         }
+//         else if (banDistance)
+//         {
+//             xSemaphoreTake(mutex, portMAX_DELAY);
+//             printf("Moverse una distancia %f \n",distanceBt);
+//             xSemaphoreGive(mutex);            
+//             moveForward(distanceBt);
+//         }
+//         else if(banCircularMovement){
+//             circularMovement(radioBt,angleTurnBt);
+//         }
+//         if (banStop)
+//         {
+//             banAngle=false;
+//             banDistance=false;
+//             banCircularMovement=false;
+//             btAvailable = true;
+//             banStop = false;  
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(5)); // Execute every 500 ms
+//     }
+// }
 
-void strategyTask(void *pvParameters)
-{
-    while (1)
-    {
-        printTaskInfo("Strategy Task executed");
-        vTaskDelay(pdMS_TO_TICKS(100)); // Execute every 1000 ms
-    }
-} 
+// void strategyTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//         printTaskInfo("Strategy Task executed");
+//         vTaskDelay(pdMS_TO_TICKS(100)); // Execute every 1000 ms
+//     }
+// } 
