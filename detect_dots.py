@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Read image
-image = cv2.imread('aaa1.jpg')
+image = cv2.imread('Robot.jpg')
 
 # Establecer los valores HSV mínimo y máximo que se mostrarán
 lower = np.array([166, 66, 149])
@@ -55,16 +55,16 @@ for i in range(len(centroids) - 1):
 # Dibujar una línea que conecta los centros más cercanos
 if closest_pair:
     cv2.line(image_with_contours, closest_pair[0], closest_pair[1], (0, 0, 255), 2)
-    # # Calcular la inclinación de la línea respecto al eje y
-    # dy = closest_pair[1][1] - closest_pair[0][1]
-    # dx = closest_pair[1][0] - closest_pair[0][0]
-    # angle_y = np.degrees(np.arctan2(dy, dx))
+    # Calcular la inclinación de la línea respecto al eje y
+    dy = closest_pair[1][1] - closest_pair[0][1]
+    dx = closest_pair[1][0] - closest_pair[0][0]
+    angle_y = np.degrees(np.arctan2(dy, dx))
 
-    # # Calcular el ángulo de la línea respecto al eje x
-    # angle_x = 90 - angle_y
+    # Calcular el ángulo de la línea respecto al eje x
+    angle_x = 90 - angle_y
 
-    # print(f'Inclinación respecto al eje y: {angle_y:.2f} grados')
-    # print(f'Ángulo respecto al eje x: {angle_x:.2f} grados')
+    print(f'Inclinación respecto al eje y: {angle_y:.2f} grados')
+    print(f'Ángulo respecto al eje x: {angle_x:.2f} grados')
 
 # Dibujar contornos en la imagen original
 cv2.drawContours(image_with_contours, contours, -1, (0, 0, 0), 2)
