@@ -5,4 +5,4 @@ Esta rama tiene que ver con todo lo relacionado con la estrategia de juego y com
 Basado en las coordenadas del robot, los obstaculos y la pelota, se implementa una primera versión de un algoritmo que encuentra el camino mas adecuado para llevar el robot hasta la pelota. Se usa el algoritmo A* (A-star) para llevar a cabo dicha tarea.
 
 ### Progreso actual
-<img src= "path_found.png" width="300" height="370">
+<img src= "path_found.png">
