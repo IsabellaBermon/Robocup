@@ -9,6 +9,8 @@ import cv2
 from detect_dots import calculateAngle
 import os
 import shutil
+from mqtt import client
+import json
 
 # Path to robot crop
 folder = "runs/detect/predict/crops/0"
@@ -70,5 +72,9 @@ for r in results:
 # Save the image with circles and labels
 cv2.imwrite("output_image.jpg", image) """
 
-# Print the extracted data
-print(extracted_data)
+# Convertir el diccionario a formato JSON
+json_data = json.dumps(extracted_data, indent=2)
+
+# Imprimir el JSON resultante
+print(json_data)
+client.publish("robot/posiciones",json_data)
