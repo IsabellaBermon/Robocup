@@ -1,7 +1,11 @@
+#ifndef _LWIPOPTS_H
+#define _LWIPOPTS_H
+
 // allow override in some examples
 #ifndef NO_SYS
 #define NO_SYS                      1
 #endif
+#define NO_SYS 1
 // allow override in some examples
 #ifndef LWIP_SOCKET
 #define LWIP_SOCKET                 0
@@ -21,7 +25,7 @@
 #define LWIP_ETHERNET               1
 #define LWIP_ICMP                   1
 #define LWIP_RAW                    1
-#define TCP_WND                     (8 * TCP_MSS)
+#define TCP_WND                     16384
 #define TCP_MSS                     1460
 #define TCP_SND_BUF                 (8 * TCP_MSS)
 #define TCP_SND_QUEUELEN            ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
@@ -51,6 +55,9 @@
 #define LWIP_STATS_DISPLAY          1
 #endif
 
+// #define MEM_OVERFLOW_CHECK 1
+// #define MEMP_OVERFLOW_CHECK 1
+
 #define ETHARP_DEBUG                LWIP_DBG_OFF
 #define NETIF_DEBUG                 LWIP_DBG_OFF
 #define PBUF_DEBUG                  LWIP_DBG_OFF
@@ -79,3 +86,10 @@
 #define PPP_DEBUG                   LWIP_DBG_OFF
 #define SLIP_DEBUG                  LWIP_DBG_OFF
 #define DHCP_DEBUG                  LWIP_DBG_OFF
+#define ALTCP_MBEDTLS_DEBUG         LWIP_DBG_ON
+#define MQTT_DEBUG                  LWIP_DBG_OFF
+#define ALTCP_MBEDTLS_MEM_DEBUG     LWIP_DBG_OFF
+
+
+#define MEMP_NUM_SYS_TIMEOUT     LWIP_NUM_SYS_TIMEOUT_INTERNAL + 1
+#endif

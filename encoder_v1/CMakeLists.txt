@@ -47,6 +47,7 @@ target_link_libraries(encoder_v1
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
     pico_multicore
+    pico_lwip_mqtt
     )
     #pico_btstack_make_gatt_header(encoder_v1 PRIVATE "${CMAKE_CURRENT_LIST_DIR}/mygatt.gatt")
 
