@@ -9,23 +9,7 @@
 #include "pico/multicore.h"
 #include "robot_movement.h"
 #include "lwipopts.h"
-#include "lwip/apps/mqtt.h"
-//#include "bt_functions.h"
-
-struct mqtt_connect_client_info_t mqtt_client_info=
-{
-  "robocupPicoW",
-  NULL, /* user */
-  NULL, /* pass */
-  0,  /* keep alive */
-  NULL, /* will_topic */
-  NULL, /* will_msg */
-  0,    /* will_qos */
-  0     /* will_retain */
-#if LWIP_ALTCP && LWIP_ALTCP_TLS
-  , NULL
-#endif
-};
+#include "mqtt.h"
 SemaphoreHandle_t mutex;
 void getAnglesMotors(){
   tca_select_channel(0);
@@ -50,82 +34,20 @@ void wifiConnect(){
     cyw43_arch_enable_sta_mode();
     printf("Connecting to Wi-Fi...\n");
     
-    while(cyw43_arch_wifi_connect_timeout_ms("PocoX3", "jonathan10", CYW43_AUTH_WPA2_AES_PSK, 30000) != 0) {
+    while(cyw43_arch_wifi_connect_timeout_ms(SSID, PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000) != 0) {
         printf("Attempting to connect...\n");
     } 
     printf("Connected.\n");
     
 
 }
-void mqtt_sub_request_cb(void *arg, err_t result) {
 
-    if(result == ERR_OK) {
-        printf("Suscripción exitosa\n");
-    } else {
-        printf("Error en suscripción\n");
-    }
-}
-
-static void mqtt_connection_cb(mqtt_client_t *client, void *arg, mqtt_connection_status_t status) {
-  if(status == MQTT_CONNECT_ACCEPTED) {
-      printf("Conexión MQTT establecida\n");
-
-      const char* topic = "picow/posiciones";
-      err_t err = mqtt_subscribe(client, topic, 0, mqtt_sub_request_cb, NULL);
-
-      if(err == ERR_OK) {
-          printf("Solicitud de suscripción enviada\n");
-      } else {
-          printf("Error al intentar suscribirse\n");
-      }
-      
-  } else {
-      printf("Conexión MQTT fallida\n");
-  
-  }
-}
-
-void mqtt_incoming_publish_cb(void *arg, const char *topic, u32_t tot_len) {
-    printf("Mensaje recibido en el tópico: %s, longitud del mensaje: %u\n", topic, tot_len);
-    // Aquí puedes preparar para recibir los datos del mensaje
-}
-
-
-void mqtt_incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags) {
-    printf("Datos del mensaje recibidos: ");
-    for(int i = 0; i < len; i++) {
-        printf("%c", data[i]);
-    }
-    printf("\n");
-}
-
-void connect_mqtt(){
-   
-    mqtt_client_t *client = mqtt_client_new();
-    if(client != NULL) {
-
-      ip_addr_t ip_addr;
-      IP_ADDR4(&ip_addr, 91, 121, 93, 94);
-
-
-      mqtt_set_inpub_callback(client, mqtt_incoming_publish_cb, mqtt_incoming_data_cb, NULL);
-      err_t err= mqtt_client_connect(client, &ip_addr, MQTT_PORT, &mqtt_connection_cb, 0, &mqtt_client_info);
-      if(err != ERR_OK){
-        printf("Connect error\n");
-
-      }
-      
-    }
-}
 
 // Function declarations
 static void HardwareInit()
 {
     //initBluetooth();
-    stdio_init_all();
-    gpio_init(4);
-    gpio_set_dir(4, GPIO_IN);
-    gpio_is_pulled_down(4);    
+    stdio_init_all();   
     mpu_init();
     mpu6050_reset();
     initI2C();
