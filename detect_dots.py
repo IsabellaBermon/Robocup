@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-# Read image
+# Leer la imagen
 image = cv2.imread('Robot.jpg')
 
 # Establecer los valores HSV mínimo y máximo que se mostrarán
@@ -55,26 +55,64 @@ for i in range(len(centroids) - 1):
 # Dibujar una línea que conecta los centros más cercanos
 if closest_pair:
     cv2.line(image_with_contours, closest_pair[0], closest_pair[1], (0, 0, 255), 2)
-    # Calcular la inclinación de la línea respecto al eje y
-    dy = closest_pair[1][1] - closest_pair[0][1]
-    dx = closest_pair[1][0] - closest_pair[0][0]
-    angle_y = np.degrees(np.arctan2(dy, dx))
 
-    # Calcular el ángulo de la línea respecto al eje x
-    angle_x = 90 - angle_y
+    ### Calcular la inclinación del robot
 
-    print(f'Inclinación respecto al eje y: {angle_y:.2f} grados')
-    print(f'Ángulo respecto al eje x: {angle_x:.2f} grados')
+    # Punto medio de la línea roja
+    midpoint = ((closest_pair[0][0] + closest_pair[1][0]) // 2, (closest_pair[0][1] + closest_pair[1][1]) // 2)
+
+    # Dibujar el punto medio
+    cv2.circle(image_with_contours, midpoint, 3, (255, 0, 0), -1)
+
+    # Calcular la pendiente negativa de la línea roja
+    slope_red_line = (closest_pair[1][1] - closest_pair[0][1]) / (closest_pair[1][0] - closest_pair[0][0])
+
+    # Calcular el ángulo de la línea roja en radianes
+    angle_red_line = np.arctan(slope_red_line)
+
+    # Convertir el ángulo a grados
+    angle_red_line_deg = np.degrees(angle_red_line)
+
+    # Calcular la pendiente de la recta secante
+    slope_secant_line = -1 / slope_red_line
+
+    # Calcular el ángulo de la recta secante en radianes
+    angle_secant_line = np.arctan(slope_secant_line)
+
+    # Convertir el ángulo a grados
+    angle_secant_line_deg = np.degrees(angle_secant_line)
+
+    # Imprimir el ángulo de la línea roja y la recta secante
+    print(f'Ángulo de la línea roja: {angle_red_line_deg} grados')
+    print(f'Ángulo de la recta secante: {angle_secant_line_deg} grados')
+
+    # Calcular y imprimir el ángulo entre la línea roja y la recta secante
+    angle_between_lines = angle_secant_line_deg - angle_red_line_deg
+    print(f'Ángulo entre la línea roja y la recta secante: {angle_between_lines} grados')
+
+    # Calcular la intersección y de la recta secante (y = mx + b)
+    intercept_y = midpoint[1] - slope_secant_line * midpoint[0]
+
+    # Calcular los puntos extremos de la recta secante
+    x1_secant = int(midpoint[0] - 100)
+    y1_secant = int(slope_secant_line * x1_secant + intercept_y)
+
+    x2_secant = int(midpoint[0] + 100)
+    y2_secant = int(slope_secant_line * x2_secant + intercept_y)
+
+    # Dibujar la recta secante
+    cv2.line(image_with_contours, (x1_secant, y1_secant), (x2_secant, y2_secant), (0, 255, 0), 2)
 
 # Dibujar contornos en la imagen original
 cv2.drawContours(image_with_contours, contours, -1, (0, 0, 0), 2)
 
 # Mostrar la imagen con contornos, puntos en el centro y línea entre centros más cercanos
-cv2.imshow('Objects Detected with Line', image_with_contours)
+cv2.imshow('Objects Detected with Line and Secant', image_with_contours)
 cv2.imwrite("output_front.jpg", image_with_contours)
+
 # Imprimir la cantidad de objetos detectados y la distancia mínima
 print(f'Cantidad de objetos detectados: {len(contours)}')
-print(f'Distancia mínima entre centros: {min_distance}')
+# print(f'Distancia mínima entre centros: {min_distance}')
 
 # Esperar por un evento de teclado y cerrar la ventana al presionar una tecla
 cv2.waitKey(0)
