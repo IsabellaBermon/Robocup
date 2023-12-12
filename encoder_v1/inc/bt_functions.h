@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "FreeRTOS.h"
+#include "semphr.h"
 #include "pico/stdlib.h"
 #include "btstack_run_loop.h"
 #include "btstack_event.h"
@@ -28,6 +30,7 @@ extern bool banAngle;
 extern bool banDistance;
 extern bool banCircularMovement;
 extern bool btAvailable;
+extern SemaphoreHandle_t bluetoothSemaphore;
 
 void initBluetooth();
 void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);

@@ -72,8 +72,8 @@ void initBluetooth(){
   gap_advertisements_enable(1);
   hci_power_control(HCI_POWER_ON);
   //btstack_run_loop_execute();
-
 }
+
 /**
  * @brief Manejador de paquetes HCI (Interfaz de Controlador de Host).
  *
@@ -92,8 +92,6 @@ void initBluetooth(){
  * - En caso de un evento de desconexión (HCI_EVENT_DISCONNECTION_COMPLETE), se actualiza
  *   el controlador de conexión a un estado inválido.
  */
-
-
 void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     UNUSED(channel);///< Marca los parámetros no utilizados para evitar advertencias de compilador.
     UNUSED(size);
@@ -110,6 +108,7 @@ void hci_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet,
             break;
     }
 }
+
 /**
  * @brief Maneja paquetes específicos del servicio Nordic SPP (Serial Port Profile).
  *
@@ -160,6 +159,7 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
         token = strtok(NULL, ",");
         i++;
       }
+      // Antes de usar las variables compartidas de Bluetooth
       if(btAvailable){
         if (*lista[0] == 'G') {
           angleBt = atof(lista[1]);
@@ -169,14 +169,10 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
           angularVelocity= 0;
           angularPosition =0;
           printf("Entra G\n");
-          // uint8_t valorStr[20];  // Búfer para almacenar el valor en formato de cadena
-          // sprintf(valorStr, "%s", lista[0]);  // Convierte el valor en la posición 0 en una cadena
-          // printf("Estoy girando y este es mi giro: %f, %s\n", angulo, valorStr);
         }else if(*lista[0] == 'D'){
           distanceBt = atof(lista[1]);
-          banDistance = true;
-          printf("Entra D\n");
-
+          banDistance = true;          
+          printf("Entra D\n");          
         }else if(*lista[0] == 'C'){
             radioBt = atof(lista[1]);
             angleTurnBt = atof(lista[2]);
@@ -189,4 +185,5 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
     default:
         break;
   }
+
 }

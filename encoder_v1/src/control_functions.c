@@ -75,6 +75,7 @@ double prevErrorVel4 = 0;
  */
 void distanceRobotCounterClockWise(uint16_t angleMotor, uint16_t *turnMotor, bool *banTurnsMotor, double *distanceMotor, int *velMotor, double *windowTimeMotor, uint64_t *prevTimeUsMotor){
     /// Condición para actualizar el contador de giros y la distancia.
+    // taskENTER_CRITICAL();
     if (angleMotor >= 330 && *banTurnsMotor){
         (*turnMotor)++;
         /// Actualiza la velocidad cada 5 giros.
@@ -85,13 +86,13 @@ void distanceRobotCounterClockWise(uint16_t angleMotor, uint16_t *turnMotor, boo
             *prevTimeUsMotor = currentTimeUs;
         }
         *distanceMotor = (*turnMotor) * circunference; ///< Se calcula la distancia
-
         *banTurnsMotor = false;
-    }
-    else if (angleMotor <= 30){
-        /// Restablece la bandera para permitir la detección de nuevos giros.
-        *banTurnsMotor = true;
-    }
+  }
+  else if (angleMotor <= 30){
+      /// Restablece la bandera para permitir la detección de nuevos giros.
+      *banTurnsMotor = true;
+  }
+  // taskEXIT_CRITICAL();
 }
 /**
  * @brief Calcula la distancia recorrida y la velocidad del robot en sentido de las agujas del reloj.
@@ -114,6 +115,7 @@ void distanceRobotCounterClockWise(uint16_t angleMotor, uint16_t *turnMotor, boo
  *       de giros por la circunferencia de la trayectoria del motor.
  */
 void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTurnsMotor, double *distanceMotor,int *velMotor,double *windowTimeMotor,uint64_t *prevTimeUsMotor){
+  // taskENTER_CRITICAL();
   if (angleMotor >= 330){
     *banTurnsMotor = true;
   }
@@ -128,6 +130,7 @@ void distanceRobotClockWise(uint16_t angleMotor,uint16_t *turnMotor,bool *banTur
     *distanceMotor = (*turnMotor)*circunference;
     *banTurnsMotor = false;
   } 
+  // taskEXIT_CRITICAL();
 }
 
 /**

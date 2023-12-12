@@ -8,6 +8,9 @@
  * Además, se definen variables globales y constantes utilizadas en el control de movimiento.
  */
 #include "robot_movement.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
 #define N_SAMPLES 100            ///< Número de muestras para el filtro del acelerometro.
 #define ACCEL_SCALE_FACTOR 16384.0 ///< Factor de escala para datos del acelerómetro.
@@ -25,10 +28,10 @@ uint16_t offCC2 = 780; ///< Offset para el motor 2 en sentido antihorario.
 uint16_t offCC3 = 720; ///< Offset para el motor 3 en sentido antihorario.
 uint16_t offCC4 = 774; ///< Offset para el motor 4 en sentido antihorario.
 
-int refVelMotor1=9;///< Velocidad de referencia para el motor 1
-int refVelMotor2=9;///< Velocidad de referencia para el motor 2
-int refVelMotor3=9;///< Velocidad de referencia para el motor 3
-int refVelMotor4=9;///< Velocidad de referencia para el motor 4
+int refVelMotor1=10;///< Velocidad de referencia para el motor 1
+int refVelMotor2=10;///< Velocidad de referencia para el motor 2
+int refVelMotor3=10;///< Velocidad de referencia para el motor 3
+int refVelMotor4=10;///< Velocidad de referencia para el motor 4
 double prevErrorAngle =0; ///< Error angular previo para control PID o similar.
 
 double prevMpuOffset = 0; ///< Offset previo del MPU
@@ -71,8 +74,6 @@ int16_t acceleration[3], gyro[3];
 void motorCounterClockWise1(){
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCC1 + offset1); // 777
 }
-
-
 /**
  * @brief Gira el motor 1 en sentido de las agujas del reloj.
  *
@@ -112,7 +113,6 @@ void motorCounterClockWise2(){
  * Utiliza el offset predefinido 'offCW2' y un offset ajustable 'offset2'.
  */
 void motorClockWise2(){
-
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCW2 + offset2); // 720
 }
 /**
@@ -167,10 +167,12 @@ void motorClockWise4(){
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, offCW4 + offset4); // 720
 }
 void motorStop(){
+  // taskENTER_CRITICAL();
   pwm_set_chan_level(slice_num_5, PWM_CHAN_A, 750);
   pwm_set_chan_level(slice_num_5, PWM_CHAN_B, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_A, 750); 
   pwm_set_chan_level(slice_num_6, PWM_CHAN_B, 750);
+  // taskEXIT_CRITICAL();
 }
 
 /**
@@ -180,10 +182,12 @@ void motorStop(){
  * Esto se logra girando los motores 1 y 3 en el sentido de las agujas del reloj y los motores 2 y 4 en sentido contrario.
  */
 void motorsForward(){
+  // taskENTER_CRITICAL();
   motorClockWise1();
   motorCounterClockWise2();
   motorClockWise3();
   motorCounterClockWise4();
+  // taskEXIT_CRITICAL();
 }
 /**
  * @brief Gira todos los motores en el sentido de las agujas del reloj.
@@ -192,10 +196,12 @@ void motorsForward(){
  * Esta configuración hace que el robot gire sobre su eje central en el sentido de las agujas del reloj.
  */
 void motorsClockWise(){
-    motorClockWise1();
-    motorClockWise2();
-    motorClockWise3();
-    motorClockWise4();
+  // taskENTER_CRITICAL();
+  motorClockWise1();
+  motorClockWise2();
+  motorClockWise3();
+  motorClockWise4();
+  // taskEXIT_CRITICAL();
 }
 /**
  * @brief Controla los motores para avanzar una distancia específica.
@@ -205,10 +211,12 @@ void motorsClockWise(){
  * la rotación de cada motor en su respectiva dirección.
  */
 void distanceMotorsForward(){
+  // taskENTER_CRITICAL();
   distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
   distanceRobotCounterClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2,&velMotor2,&windowTimeMotor2,&prevTimeUsMotor2);
   distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3,&velMotor3,&windowTimeMotor3,&prevTimeUsMotor3);
   distanceRobotCounterClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4,&velMotor4,&windowTimeMotor4,&prevTimeUsMotor4);
+  // taskEXIT_CRITICAL();
 }
 
 /**
@@ -219,11 +227,14 @@ void distanceMotorsForward(){
  * un control preciso de la distancia de giro.
  */
 void distanceMotorsClockWise(){
-    distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
-    distanceRobotClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2,&velMotor2,&windowTimeMotor2,&prevTimeUsMotor2);
-    distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3,&velMotor3,&windowTimeMotor3,&prevTimeUsMotor3);
-    distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4,&velMotor4,&windowTimeMotor4,&prevTimeUsMotor4);
-  }
+  // taskENTER_CRITICAL();
+  distanceRobotClockWise(angleMotor1,&turnMotor1,&banTurnsMotor1,&distanceMotor1,&velMotor1,&windowTimeMotor1,&prevTimeUsMotor1);
+  distanceRobotClockWise(angleMotor2,&turnMotor2,&banTurnsMotor2,&distanceMotor2,&velMotor2,&windowTimeMotor2,&prevTimeUsMotor2);
+  distanceRobotClockWise(angleMotor3,&turnMotor3,&banTurnsMotor3,&distanceMotor3,&velMotor3,&windowTimeMotor3,&prevTimeUsMotor3);
+  distanceRobotClockWise(angleMotor4,&turnMotor4,&banTurnsMotor4,&distanceMotor4,&velMotor4,&windowTimeMotor4,&prevTimeUsMotor4);
+  // taskEXIT_CRITICAL();  
+}
+
 void calibrate() {
   float sum_x = 0, sum_y = 0;
   for (int i = 0; i < N_SAMPLES; i++) {
@@ -243,6 +254,7 @@ void readAndProcessAccelerometer(int *ax, int *ay) {
   *ay = (acceleration[1] - offsetYa) / ACCEL_SCALE_FACTOR * 9.81;
 
 }
+
 /**
  * @brief Realiza la rotación del robot en base a un ángulo especificado.
  *
@@ -259,7 +271,7 @@ void readAndProcessAccelerometer(int *ax, int *ay) {
  *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
  */
 void rotation(double rotationAngle){
-  wTimeUpdateAngle=0.0028;
+  wTimeUpdateAngle=0.0029;
   /// Ajusta los offsets para los motores en la rotación.
   offCW1 = 738;
   offCW2 = 738;
@@ -267,15 +279,17 @@ void rotation(double rotationAngle){
   offCW4 = 738;
   /// Inicia la rotación en el sentido de las agujas del reloj si el ángulo es positivo.
   if(rotationAngle > 0){
+    taskENTER_CRITICAL();
     motorsClockWise();
-    /// Verifica si el ángulo objetivo está cerca de ser alcanzado.
-    if(robotAngle+20 >=rotationAngle){
+    /// Verifica si el ángulo objetivo está cerca de ser alcanzado.    
+    if(robotAngle+20 >=rotationAngle){      
       motorStop();       ///< Detiene los motores
       restartControl();  ///< Reinicia los controles del robot
       restartMovement(); ///< Reinicia el movimiento
       getOffsets();      ///< Actualiza los offsets
-      banStop = true;    ///< Indica que se ha completado la rotación
+      banStop = true;    ///< Indica que se ha completado la rotación  
     }
+    taskEXIT_CRITICAL();
   }
 }
 
@@ -302,16 +316,15 @@ void moveForward(double distance){
   offCC4 = 775;
   wTimeUpdateAngle=0.0022;
   if (distance > 0){  
+    taskENTER_CRITICAL();
     int mpuOffset = robotAngle;///< Offset basado en el ángulo actual del robot.
-    
     motorsForward(); ///< Inicia el movimiento hacia adelante.
     distanceMotorsForward(); ///< Controla la distancia a avanzar.
-
-
     /// Calcula la posición final basada en la distancia recorrida.
     double posx1 = (distanceMotor1+distanceMotor4)*cos(52*PI/180)/2;
     double posx2 = (distanceMotor2+distanceMotor3)*cos(52*PI/180)/2;
     double finalPos = (posx1 + posx2)/2;
+    printf("Distancia calculada %d \n",finalPos);
     if(finalPos >= distance){
       motorStop();      ///< Detiene los motores
       restartControl(); ///< Reinicia los controles del robot
@@ -326,18 +339,16 @@ void moveForward(double distance){
         m1ControlSpeed(refVelMotor1,1);
         m3ControlSpeed(refVelMotor3,1);
       }else{
-        m2ControlSpeed(refVelMotor2+mpuOffset/2,-1);
-        m1ControlSpeed(refVelMotor1-mpuOffset/2,1);
+        m2ControlSpeed(refVelMotor2+mpuOffset,-1);
+        m1ControlSpeed(refVelMotor1-mpuOffset,1);
         m4ControlSpeed(refVelMotor4,-1);
         m3ControlSpeed(refVelMotor3,1);
       }
-
       motorsForward();         //< Continúa el movimiento hacia adelante.
       distanceMotorsForward(); //< Continúa controlando la distancia a avanzar.
     }
     //dualMotorPIDControl();
- 
-   
+    taskEXIT_CRITICAL();   
   }
 }
 /**
@@ -425,6 +436,7 @@ void restartMovement(){
 void updateAngle(){
   /// Lee los datos crudos del acelerómetro y giroscopio.
   mpu6050_read_raw(acceleration,gyro);
+  taskENTER_CRITICAL();
   /// Fase inicial: calcula el offset del giroscopio
   if(angularFlag==true){
     offsetZ = filter_median_moving(gyro[2]);
@@ -449,4 +461,5 @@ void updateAngle(){
       robotAngle -= 2;
     }
   }
+  taskEXIT_CRITICAL();
 }
