@@ -26,6 +26,7 @@ extern double angleBt;
 extern double distanceBt;
 extern double angleTurnBt;
 extern double radioBt;
+extern bool shootBt;
 extern bool banAngle;
 extern bool banDistance;
 extern bool banCircularMovement;

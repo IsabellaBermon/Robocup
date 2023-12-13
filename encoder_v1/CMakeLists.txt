@@ -20,14 +20,18 @@ project(encoder_v1 C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
+# Agregar esta línea para compilar archivos .cpp como código C++
 
-add_executable(encoder_v1 src/main.c
-                        src/encoder.c
-                        src/motor_config.c
-                        src/control_functions.c
-                        src/robot_movement.c
-                        src/bt_functions.c
-                        src/MPU6050_i2c.c
+
+add_executable(encoder_v1 
+    src/main.c
+    src/encoder.c
+    src/motor_config.c
+    src/control_functions.c
+    src/robot_movement.c
+    src/bt_functions.c
+    src/MPU6050_i2c.c
+    src/dribbler.c
                         )
 
 pico_set_program_name(encoder_v1 "encoder_v1")

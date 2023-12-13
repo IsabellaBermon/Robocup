@@ -8,6 +8,7 @@
 #include "pico/multicore.h"
 #include "robot_movement.h"
 #include "bt_functions.h"
+#include "dribbler.h"
 
 SemaphoreHandle_t mutex;
 SemaphoreHandle_t sensorSemaphore;
@@ -26,12 +27,14 @@ static void HardwareInit()
     initI2C();
     getOffsets();
     initMotor();
+    initMotorControl();
 }
 
 void sensorReadingTask(void *pvParameters);
 void mpuReadingTask(void *pvParameters);
 void communicationTask(void *pvParameters);
 void robotControlTask(void *pvParameters);
+void dribbleTask(void *pvParameters);
 
 const TickType_t xFrequency_sensor = pdMS_TO_TICKS(2.8);     
 const TickType_t xFrequency_mpu = pdMS_TO_TICKS(2.2);      
@@ -41,7 +44,7 @@ const TickType_t xFrequency_robotControl = pdMS_TO_TICKS(2.8);
 
 int main(){
 
-  BaseType_t xReturnedA, xReturnedB,xReturnedC,xReturnD;
+  BaseType_t xReturnedA, xReturnedB,xReturnedC,xReturnD,xReturnE;
   HardwareInit();
 
   mutex = xSemaphoreCreateMutex();
@@ -55,6 +58,7 @@ int main(){
   xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 4, NULL);
   xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, NULL);
   xReturnD = xTaskCreate(robotControlTask, "robotControlTask", 1000, NULL, 3, NULL);
+  xReturnE = xTaskCreate(dribbleTask, "dribbleControl", 1000, NULL, 3, NULL);
 
   // Check return values for errors
   if (xReturnedA != pdPASS || xReturnedB != pdPASS)
@@ -252,7 +256,24 @@ void robotControlTask(void *pvParameters) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency_robotControl);
     }
 }
+void dribbleTask(void *pvParameters){
 
+     while (1){
+        // Comprobar la bandera para detener la tarea
+        TickType_t xLastWakeTime;
+        xLastWakeTime = xTaskGetTickCount();
+     
+        // printTaskInfo("Motor Control Task executed");
+        // Realizar el control del motor
+        if(!shootBt){
+            dribble();
+        }else{
+            kick();
+        }
+
+        vTaskDelayUntil(&xLastWakeTime, xFrequency_movement);        
+    }
+}
 void communicationTask(void *pvParameters)
 {
     while (1)
