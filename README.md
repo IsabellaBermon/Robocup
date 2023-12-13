@@ -10,6 +10,7 @@ Para la generación de la rotación del rodillo, se emplean tres engranajes. Uno
 La sección inferior cumple la función de retener la bola, acompañándola durante su desplazamiento en el campo de juego. En contraste con la versión original, se ha prescindido del sistema de pateo, ya que esta funcionalidad ha sido reemplazada por el diseño modificado del rodillo. En este diseño, el eje permanece fijo en las partes laterales del sistema, permitiendo que el rodillo gire sobre él de manera independiente.
 
 El sistema impreso e implementado se observa a continuación
+
 ![dribbler_nuevo](https://github.com/IsabellaBermon/Robocup/assets/42179443/23178e4c-8df9-4af3-ac35-2160daf5cc6c)
 
 Se agregaron dos piezas a cada lado del dribbler para mantener la bola centrada en el eje del rodillo.
