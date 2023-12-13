@@ -15,7 +15,7 @@ double angleBt = 0;
 double distanceBt = 0;
 double angleTurnBt = 0;
 double radioBt = 0;
-bool shootBt = 0;
+bool shootBt = false;
 bool btAvailable = true;
 bool banAngle = false;
 bool banCircularMovement=false;
@@ -160,6 +160,9 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
         token = strtok(NULL, ",");
         i++;
       }
+      if(*lista[0]=='S'){
+           shootBt = !shootBt;
+      }   
       // Antes de usar las variables compartidas de Bluetooth
       if(btAvailable){
         if (*lista[0] == 'G') {
@@ -179,9 +182,7 @@ void nordic_spp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
             angleTurnBt = atof(lista[2]);
             banCircularMovement=true;
             printf("Entra C: %f, %f\n",radioBt,angleTurnBt);
-        }else if(*lista[0]=='S'){
-           shootBt = true;
-        }    
+        } 
         btAvailable = false; 
       }
       

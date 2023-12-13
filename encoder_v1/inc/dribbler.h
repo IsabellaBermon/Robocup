@@ -3,8 +3,8 @@
 
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
-#define PWMKICK 200
-#define PWMDRIBBLE 200
+#define PWMKICK 255
+#define PWMDRIBBLE 255
 void initMotorControl();
 void kick();
 void dribble();

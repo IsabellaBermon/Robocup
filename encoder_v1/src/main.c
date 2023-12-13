@@ -28,6 +28,7 @@ static void HardwareInit()
     getOffsets();
     initMotor();
     initMotorControl();
+    dribble();
 }
 
 void sensorReadingTask(void *pvParameters);
@@ -41,6 +42,7 @@ const TickType_t xFrequency_mpu = pdMS_TO_TICKS(2.2);
 const TickType_t xFrequency_communication = pdMS_TO_TICKS(5); 
 const TickType_t xFrequency_movement = pdMS_TO_TICKS(2.8); 
 const TickType_t xFrequency_robotControl = pdMS_TO_TICKS(2.8); 
+const TickType_t xFrequency_dribble = pdMS_TO_TICKS(2.8); 
 
 int main(){
 
@@ -256,24 +258,20 @@ void robotControlTask(void *pvParameters) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency_robotControl);
     }
 }
-void dribbleTask(void *pvParameters){
 
+void dribbleTask(void *pvParameters){
      while (1){
-        // Comprobar la bandera para detener la tarea
         TickType_t xLastWakeTime;
-        xLastWakeTime = xTaskGetTickCount();
-     
-        // printTaskInfo("Motor Control Task executed");
-        // Realizar el control del motor
+        xLastWakeTime = xTaskGetTickCount();       
         if(!shootBt){
             dribble();
         }else{
             kick();
-        }
-
-        vTaskDelayUntil(&xLastWakeTime, xFrequency_movement);        
+        }       
+        vTaskDelayUntil(&xLastWakeTime, xFrequency_dribble);        
     }
 }
+
 void communicationTask(void *pvParameters)
 {
     while (1)
