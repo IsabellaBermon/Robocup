@@ -16,9 +16,3 @@ El sistema impreso e implementado se observa a continuación
 Se agregaron dos piezas a cada lado del dribbler para mantener la bola centrada en el eje del rodillo.
 
 ![betty_ball](https://github.com/IsabellaBermon/Robocup/assets/42179443/7907e4c0-42ca-4707-a813-478295c5bb83)
-
-<!-- Ajusta el tamaño según sea necesario -->
-<img src="https://github.com/IsabellaBermon/Robocup/raw/main/assets/42179443/23178e4c-8df9-4af3-ac35-2160daf5cc6c" alt="dribbler_nuevo" width="400"/>
-
-<img src="https://github.com/IsabellaBermon/Robocup/raw/main/assets/42179443/7907e4c0-42ca-4707-a813-478295c5bb83" alt="betty_ball" width="400"/>
-
