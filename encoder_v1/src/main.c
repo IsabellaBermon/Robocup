@@ -10,10 +10,12 @@
 #include "bt_functions.h"
 #include "dribbler.h"
 
-SemaphoreHandle_t mutex;
-SemaphoreHandle_t sensorSemaphore;
-SemaphoreHandle_t mpuSemaphore;
-TaskHandle_t xTaskToStop = NULL;
+SemaphoreHandle_t mutex; ///< Maneja el mutex para operaciones de impresión seguras en un entorno multitarea.
+SemaphoreHandle_t sensorSemaphore; ///< Maneja el semáforo para sincronizar el acceso a los sensores del robot.
+SemaphoreHandle_t mpuSemaphore; ///< Maneja el semáforo para sincronizar el acceso al MPU (Unidad de Medición Inercial).
+TaskHandle_t xTaskToStop = NULL; ///< Maneja la tarea que debe detenerse; inicialmente no hay ninguna.
+
+
 
 volatile BaseType_t flagToStopTask = pdFALSE;
 
@@ -72,6 +74,14 @@ int main(){
 
 }                       
 
+/**
+ * @brief Imprime un mensaje de forma segura en un entorno multitarea.
+ *
+ * Esta función toma un mutex antes de imprimir un mensaje en la consola para evitar
+ * conflictos en un entorno multitarea, luego libera el mutex.
+ *
+ * @param out El mensaje a imprimir.
+ */
 void vSafePrint(char *out)
 {
     xSemaphoreTake(mutex, portMAX_DELAY);
@@ -79,6 +89,14 @@ void vSafePrint(char *out)
     xSemaphoreGive(mutex);
 }
 
+/**
+ * @brief Imprime información sobre una tarea de FreeRTOS.
+ *
+ * Genera y muestra información sobre la tarea actual, incluyendo su nombre, el núcleo en el que
+ * se ejecuta y el tiempo actual en milisegundos.
+ *
+ * @param taskName Nombre de la tarea a imprimir.
+ */
 void printTaskInfo(const char *taskName)
 {
     char out[128];
@@ -86,6 +104,12 @@ void printTaskInfo(const char *taskName)
     vSafePrint(out);
 }
 
+/**
+ * @brief Lee y actualiza los ángulos de los motores del robot.
+ *
+ * Selecciona cada canal de motor y actualiza el ángulo del motor correspondiente
+ * restando el ángulo offset inicial.
+ */
 void getAnglesMotors(){
     tca_select_channel(0);
     angleMotor1 = angleSubtraction(getAngle(),offsetAngleMotor1);
@@ -98,6 +122,14 @@ void getAnglesMotors(){
     tca_select_channel(4);
 }
 
+/**
+ * @brief Tarea que se ejecuta periódicamente para leer los ángulos de los motores.
+ *
+ * Esta tarea se bloquea en un semáforo hasta que es seguro leer los sensores, luego
+ * actualiza los ángulos de los motores y libera el semáforo.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void sensorReadingTask(void *pvParameters)
 {
     while (1)
@@ -119,6 +151,15 @@ void sensorReadingTask(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(2.8)); 
     }
 }
+
+/**
+ * @brief Tarea para leer datos del MPU.
+ *
+ * Esta tarea espera a que sea seguro leer el MPU, luego actualiza la posición angular
+ * y libera el semáforo una vez completada la lectura.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 
 void mpuReadingTask(void *pvParameters)
 {
@@ -143,6 +184,14 @@ void mpuReadingTask(void *pvParameters)
     }
 }
 
+/**
+ * @brief Tarea para manejar la rotación del robot.
+ *
+ * Esta tarea controla la rotación del robot basándose en un ángulo recibido. La tarea se detiene
+ * si se activa la bandera 'banStop'.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void rotationTask(void *pvParameters){
     while (1){
         // Comprobar la bandera para detener la tarea
@@ -170,6 +219,14 @@ void rotationTask(void *pvParameters){
     }
 }
 
+/**
+ * @brief Tarea para mover el robot hacia adelante.
+ *
+ * Controla el movimiento hacia adelante del robot hasta una distancia especificada.
+ * La tarea se detiene si se activa la bandera 'banStop'.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void moveForwardTask(void *pvParameters){
     while (1){
         // Comprobar la bandera para detener la tarea
@@ -198,6 +255,15 @@ void moveForwardTask(void *pvParameters){
     }
 }
 
+
+/**
+ * @brief Tarea para el movimiento circular del robot.
+ *
+ * Realiza un movimiento circular basado en un radio y ángulo especificados.
+ * La tarea se detiene si se activa la bandera 'banStop'.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void circularMovementTask(void *pvParameters){
     while (1){
         // Comprobar la bandera para detener la tarea
@@ -223,6 +289,14 @@ void circularMovementTask(void *pvParameters){
     }
 }
 
+/**
+ * @brief Controla el robot basado en comandos recibidos.
+ *
+ * Esta tarea verifica la disponibilidad de comandos Bluetooth y ejecuta movimientos
+ * del robot como rotación, movimiento hacia adelante y movimiento circular.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void robotControlTask(void *pvParameters) {
     while(1) {
         TickType_t xLastWakeTime;
@@ -251,6 +325,14 @@ void robotControlTask(void *pvParameters) {
     }
 }
 
+/**
+ * @brief Tarea para controlar el driblador del robot.
+ *
+ * Activa el mecanismo de driblado o disparo en el robot, dependiendo del estado de
+ * la variable 'shootBt'.
+ *
+ * @param pvParameters Parámetros pasados a la tarea; no se utiliza en esta función.
+ */
 void dribbleTask(void *pvParameters){
      while (1){
         TickType_t xLastWakeTime;
