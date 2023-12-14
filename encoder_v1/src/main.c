@@ -33,13 +33,11 @@ static void HardwareInit()
 
 void sensorReadingTask(void *pvParameters);
 void mpuReadingTask(void *pvParameters);
-void communicationTask(void *pvParameters);
 void robotControlTask(void *pvParameters);
 void dribbleTask(void *pvParameters);
 
 const TickType_t xFrequency_sensor = pdMS_TO_TICKS(2.8);     
-const TickType_t xFrequency_mpu = pdMS_TO_TICKS(2.2);      
-const TickType_t xFrequency_communication = pdMS_TO_TICKS(5); 
+const TickType_t xFrequency_mpu = pdMS_TO_TICKS(2.2);       
 const TickType_t xFrequency_movement = pdMS_TO_TICKS(2.8); 
 const TickType_t xFrequency_robotControl = pdMS_TO_TICKS(2.8); 
 const TickType_t xFrequency_dribble = pdMS_TO_TICKS(2.8); 
@@ -58,7 +56,6 @@ int main(){
   // Create tasks on the first core
   xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 5, NULL);
   xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 5, NULL);
-  xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, NULL);
   xReturnD = xTaskCreate(robotControlTask, "robotControlTask", 1000, NULL, 3, NULL);
   xReturnE = xTaskCreate(dribbleTask, "dribbleControl", 1000, NULL, 3, NULL);
 
@@ -264,17 +261,5 @@ void dribbleTask(void *pvParameters){
             kick();
         }       
         vTaskDelayUntil(&xLastWakeTime, xFrequency_dribble);        
-    }
-}
-
-void communicationTask(void *pvParameters)
-{
-    while (1)
-    {
-        TickType_t xLastWakeTime;
-        xLastWakeTime = xTaskGetTickCount();
-        btstack_run_loop_execute();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency_communication);
-
     }
 }
