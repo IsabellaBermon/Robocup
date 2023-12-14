@@ -6,9 +6,12 @@
 #define GRID_HEIGHT 50
 #define NUM_OBSTACLES 3
 #define INFINITE_COST 99999
-#define MAX_NODES 2000 // Un número arbitrario que sea suficientemente grande
+#define MAX_NODES 200 // Un número arbitrario que sea suficientemente grande
 #define OBJECT_SIZE 3
 
+
+extern int numMovimientos;
+extern int numMovimientosConsolidados;
 typedef struct {
     float x;
     float y;
@@ -46,6 +49,7 @@ typedef struct {
 typedef struct {
     int giro;
     int movimiento; // siempre será 1 en este caso
+
 } Movimiento;
 
 
@@ -83,8 +87,8 @@ void markPathOnGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, cha
 
 // void markPathOnGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, char pathMarker);
 
-void convertPathToMovements(NodeList *pathList, Movimiento* movimientos, int* numMovimientos);
+void convertPathToMovements(NodeList *pathList, Movimiento* movimientos);
 
-void consolidateMovements(Movimiento *movimientos, int numMovimientos, Movimiento *movimientosConsolidados, int *numMovimientosConsolidados);
+void consolidateMovements(NodeList* pathList, Movimiento *movimientosConsolidados);
 
 void AStar(Node nodes[GRID_WIDTH][GRID_HEIGHT], Point start, Point goal, NodeList* pathList);

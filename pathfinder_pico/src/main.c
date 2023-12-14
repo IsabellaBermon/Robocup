@@ -17,33 +17,35 @@ int main() {
     Point goal = {round(ball.position.x), round(ball.position.y)};
     
     NodeList pathList;
-    NodeList_init(&pathList);
 
-    Movimiento movimientos[MAX_NODES]; // Asegúrate de que este tamaño sea suficiente
-    int numMovimientos;
+   
+    //int numMovimientos;
     // convertPathToMovements(&pathList, movimientos, &numMovimientos);
 
     Movimiento movimientosConsolidados[MAX_NODES];
-    int numMovimientosConsolidados;
-    // consolidateMovements(movimientos, numMovimientos, movimientosConsolidados, &numMovimientosConsolidados);
 
+    // consolidateMovements(movimientos, numMovimientos, movimientosConsolidados, &numMovimientosConsolidados);
+     sleep_ms(2000);
+    NodeList_init(&pathList);
+    AStar(nodes, start, goal, &pathList);
     while (1)
     {
-        if(getchar()) {
-            AStar(nodes, start, goal, &pathList);
+           
             // markPathOnGrid(nodes, &pathList, 'O');
             // printGrid(nodes);
-            convertPathToMovements(&pathList, movimientos, &numMovimientos);
-            consolidateMovements(movimientos, numMovimientos, movimientosConsolidados, &numMovimientosConsolidados);
-            for (int i = 0; i < numMovimientos; i++) {
-                printf("Girar: %d grados, Mover %d hacia adelante\n", movimientos[i].giro,movimientos[i].movimiento);
-            }
-            printf("\n");
-            // Imprimir los movimientos consolidados
+         
+            consolidateMovements(&pathList, movimientosConsolidados);
+            printf("num %d \n",numMovimientos);
+            // for (int i = 0; i < numMovimientos; i++) {
+            //     printf("Girar: %d grados, Mover %d hacia adelante\n", movimientos[i].giro,movimientos[i].movimiento);
+            // }
+            // printf("\n");
+            // // Imprimir los movimientos consolidados
             for (int i = 0; i < numMovimientosConsolidados; i++) {
                 printf("Girar: %d grados, Mover: %d\n", movimientosConsolidados[i].giro, movimientosConsolidados[i].movimiento);
             }
-        }
+            sleep_ms(100000);
+    
     }
 
     return 0;

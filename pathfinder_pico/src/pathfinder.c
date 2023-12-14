@@ -45,7 +45,8 @@
 //         printf("\n");
 //     }
 // }
-
+int numMovimientos=0;
+int numMovimientosConsolidados =0;
 void markObjectInGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], int centerX, int centerY, char type) { // Crea la huella del objeto
     int halfSize = (OBJECT_SIZE-1)/2; // Para una huella de 7x7, el tamaño de la mitad es 3
 
@@ -210,10 +211,11 @@ void markPathOnGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], NodeList* pathList, cha
     }
 }
 
-void convertPathToMovements(NodeList* pathList, Movimiento* movimientos, int* numMovimientos) {
+void convertPathToMovements(NodeList* pathList, Movimiento* movimientos) {
     int angle = 0; // Angulo inicial del robot
 
     int setpoint, giro;
+    
 
     for (int i = 1; i < pathList->size; i++) {
         Node* current = pathList->items[i];
@@ -236,9 +238,9 @@ void convertPathToMovements(NodeList* pathList, Movimiento* movimientos, int* nu
         angle += giro;
 
         // Guardar el movimiento en el arreglo
-        movimientos[*numMovimientos].giro = giro;
-        movimientos[*numMovimientos].movimiento = 1;
-        (*numMovimientos)++;
+        movimientos[numMovimientos].giro = giro;
+        movimientos[numMovimientos].movimiento = 1;
+        (numMovimientos)++;
 
         // // Imprimir el movimiento
         // printf("Girar: %d grados, Mover hacia adelante\n", giro);
@@ -259,8 +261,10 @@ void convertPathToMovements(NodeList* pathList, Movimiento* movimientos, int* nu
     }
 }
 
-void consolidateMovements(Movimiento* movimientos, int numMovimientos, Movimiento* movimientosConsolidados, int* numMovimientosConsolidados) {
-    *numMovimientosConsolidados = 0;
+void consolidateMovements(NodeList* pathList, Movimiento* movimientosConsolidados) {
+    Movimiento movimientos[MAX_NODES];
+    convertPathToMovements(pathList,movimientos);
+    
     int i = 0;
 
     while (i < numMovimientos) {
@@ -274,9 +278,9 @@ void consolidateMovements(Movimiento* movimientos, int numMovimientos, Movimient
         }
 
         // Guardar el movimiento consolidado
-        movimientosConsolidados[*numMovimientosConsolidados].giro = movimientoActual.giro;
-        movimientosConsolidados[*numMovimientosConsolidados].movimiento = movimientoSumado;
-        (*numMovimientosConsolidados)++;
+        movimientosConsolidados[numMovimientosConsolidados].giro = movimientoActual.giro;
+        movimientosConsolidados[numMovimientosConsolidados].movimiento = movimientoSumado;
+        (numMovimientosConsolidados)++;
 
         i++;
     }
@@ -285,7 +289,7 @@ void consolidateMovements(Movimiento* movimientos, int numMovimientos, Movimient
 
 //==========================================================================================================================================
 
-void AStar(Node nodes[GRID_WIDTH][GRID_HEIGHT], Point start, Point goal, NodeList* pathList) {
+void  AStar(Node nodes[GRID_WIDTH][GRID_HEIGHT], Point start, Point goal, NodeList* pathList) {
     // Asignacion de nodo de INICIO y nodo OBJETIVO
     Node* startNode = &nodes[(int)start.x][(int)start.y];
     Node* goalNode = &nodes[(int)goal.x][(int)goal.y];
@@ -338,6 +342,6 @@ void AStar(Node nodes[GRID_WIDTH][GRID_HEIGHT], Point start, Point goal, NodeLis
             neighbor->G = tentativeGScore;
             neighbor->H = heuristic(neighbor->x, neighbor->y, goalNode->x, goalNode->y);
         }
-        printf("\n");
+        //printf("\n");
     }
 }
