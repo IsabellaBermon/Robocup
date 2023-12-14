@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define GRID_HEIGHT 10
-#define GRID_WIDTH 10
-#define NUM_OBSTACLES 4
+#define GRID_WIDTH 40
+#define GRID_HEIGHT 50
+#define NUM_OBSTACLES 3
 #define INFINITE_COST 99999
-#define MAX_NODES 100  // Un número arbitrario que sea suficientemente grande
+#define MAX_NODES 2000 // Un número arbitrario que sea suficientemente grande
+#define OBJECT_SIZE 3
 
 typedef struct {
     float x;
@@ -42,15 +43,27 @@ typedef struct {
     int size;
 } NodeList;
 
-void initializeGrid(Cell grid[GRID_HEIGHT][GRID_WIDTH], Robot *robot, Ball *ball, Obstacle obstacles[], int numObstacles);
+typedef struct {
+    int giro;
+    int movimiento; // siempre será 1 en este caso
+} Movimiento;
 
-void printGrid(Cell grid[GRID_HEIGHT][GRID_WIDTH]);
 
-void initializeNodes(Node nodes[GRID_HEIGHT][GRID_WIDTH], Cell grid[GRID_HEIGHT][GRID_WIDTH]);
+// void markObjectInGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], int centerX, int centerY, char type);
+
+void markObjectInGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], int centerX, int centerY, char type);
+
+// void initializeGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], Robot *robot, Ball *ball, Obstacle obstacles[], int numObstacles);
+
+// void printGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT]);
+
+void printGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT]);
+
+void initializeNodes(Node nodes[GRID_WIDTH][GRID_HEIGHT], Robot *robot, Ball *ball, Obstacle obstacles[], int numObstacles);
 
 int heuristic(int x, int y, int goalX, int goalY);
 
-void findNeighbors(Node nodes[GRID_HEIGHT][GRID_WIDTH], int x, int y, Node *neighbors[], int *neighborCount);
+void findNeighbors(Node nodes[GRID_WIDTH][GRID_HEIGHT], int x, int y, Node *neighbors[], int *neighborCount);
 
 void NodeList_init(NodeList *list);
 
@@ -62,6 +75,16 @@ void NodeList_remove(NodeList *list, Node *node);
 
 Node *NodeList_getLowestF(NodeList *list);
 
-void reconstructPath(Node *goalNode);
+void reconstructPath(Node* goalNode, NodeList* pathList);
 
-void AStar(Node nodes[GRID_HEIGHT][GRID_WIDTH], Point start, Point goal);
+void NodeList_reverse(NodeList *list);
+
+void markPathOnGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, char pathMarker);
+
+// void markPathOnGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, char pathMarker);
+
+void convertPathToMovements(NodeList *pathList, Movimiento* movimientos, int* numMovimientos);
+
+void consolidateMovements(Movimiento *movimientos, int numMovimientos, Movimiento *movimientosConsolidados, int *numMovimientosConsolidados);
+
+void AStar(Node nodes[GRID_WIDTH][GRID_HEIGHT], Point start, Point goal, NodeList* pathList);
