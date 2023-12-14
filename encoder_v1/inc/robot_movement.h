@@ -66,6 +66,9 @@ extern double Kd_pair;
 extern double integralError_pair;
 extern double previousError_pair;
 
+extern uint64_t prevTimeW;
+extern double ventana;
+
 /**
  * @brief Gira el motor 1 en sentido antihorario.
  */

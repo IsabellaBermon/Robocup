@@ -28,10 +28,10 @@ uint16_t offCC2 = 780; ///< Offset para el motor 2 en sentido antihorario.
 uint16_t offCC3 = 720; ///< Offset para el motor 3 en sentido antihorario.
 uint16_t offCC4 = 774; ///< Offset para el motor 4 en sentido antihorario.
 
-int refVelMotor1=10;///< Velocidad de referencia para el motor 1
-int refVelMotor2=10;///< Velocidad de referencia para el motor 2
-int refVelMotor3=10;///< Velocidad de referencia para el motor 3
-int refVelMotor4=10;///< Velocidad de referencia para el motor 4
+int refVelMotor1=12;///< Velocidad de referencia para el motor 1
+int refVelMotor2=12;///< Velocidad de referencia para el motor 2
+int refVelMotor3=12;///< Velocidad de referencia para el motor 3
+int refVelMotor4=12;///< Velocidad de referencia para el motor 4
 double prevErrorAngle =0; ///< Error angular previo para control PID o similar.
 
 double prevMpuOffset = 0; ///< Offset previo del MPU
@@ -63,7 +63,8 @@ bool angularFlag = true; ///< Flag para control del calculo del offset.
 int offsetZ;///< Offset para el giroscopio en eje Z.
 int16_t acceleration[3], gyro[3];
 
-
+uint64_t prevTimeW = 0;
+double ventana = 0; 
 
 /**
  * @brief Gira el motor 1 en sentido contrario a las agujas del reloj.
@@ -82,8 +83,8 @@ void motorCounterClockWise1(){
  */
 void motorClockWise1(){
   if((offCW1 + offset1) >= 718){
-    if((offCW1+offset1) >= 742){
-      offset1 = 742-offCW1;
+    if((offCW1+offset1) >= 738){
+      offset1 = 738-offCW1;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_A, offCW1 + offset1); // 723
   }else{
@@ -97,9 +98,9 @@ void motorClockWise1(){
  * Utiliza el offset predefinido 'offCC2' y un offset ajustable 'offset2'.
  */
 void motorCounterClockWise2(){
-  if((offCC2 + offset2)<=785){
-     if((offCC2 + offset2) <= 768){
-      offset2 = 768-offCC2;
+  if((offCC2 + offset2)<=790){
+     if((offCC2 + offset2) <= 770){
+      offset2 = 770-offCC2;
     }
     pwm_set_chan_level(slice_num_5, PWM_CHAN_B, offCC2 + offset2); // 780
   }else{
@@ -271,18 +272,18 @@ void readAndProcessAccelerometer(int *ax, int *ay) {
  *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
  */
 void rotation(double rotationAngle){
-  wTimeUpdateAngle=0.0029;
+  wTimeUpdateAngle=0.0028;
   /// Ajusta los offsets para los motores en la rotación.
-  offCW1 = 738;
-  offCW2 = 738;
-  offCW3 = 765; 
-  offCW4 = 738;
+  offCW1 = 736;
+  offCW2 = 736;
+  offCW3 = 767; 
+  offCW4 = 736;
   /// Inicia la rotación en el sentido de las agujas del reloj si el ángulo es positivo.
   if(rotationAngle > 0){
     taskENTER_CRITICAL();
     motorsClockWise();
     /// Verifica si el ángulo objetivo está cerca de ser alcanzado.    
-    if(robotAngle+20 >=rotationAngle){      
+    if(robotAngle+20>=rotationAngle){      
       motorStop();       ///< Detiene los motores
       restartControl();  ///< Reinicia los controles del robot
       restartMovement(); ///< Reinicia el movimiento
@@ -311,13 +312,13 @@ void rotation(double rotationAngle){
 void moveForward(double distance){
   /// Ajusta los offsets para los motores en movimiento hacia adelante.
   offCW1 = 733;
-  offCC2 = 777;
+  offCC2 = 779;
   offCW3 = 775;
   offCC4 = 775;
   wTimeUpdateAngle=0.0022;
   if (distance > 0){  
     taskENTER_CRITICAL();
-    int mpuOffset = robotAngle;///< Offset basado en el ángulo actual del robot.
+    int mpuOffset = 0.5*robotAngle;///< Offset basado en el ángulo actual del robot.
     motorsForward(); ///< Inicia el movimiento hacia adelante.
     distanceMotorsForward(); ///< Controla la distancia a avanzar.
     /// Calcula la posición final basada en la distancia recorrida.
@@ -339,8 +340,13 @@ void moveForward(double distance){
         m1ControlSpeed(refVelMotor1,1);
         m3ControlSpeed(refVelMotor3,1);
       }else{
-        m2ControlSpeed(refVelMotor2+mpuOffset,-1);
-        m1ControlSpeed(refVelMotor1-mpuOffset,1);
+        if(mpuOffset>0){
+          m2ControlSpeed(refVelMotor2+mpuOffset,-1);
+          m1ControlSpeed(refVelMotor1-mpuOffset/2,1);
+        }else{
+          m2ControlSpeed(refVelMotor2+mpuOffset/2,-1);
+          m1ControlSpeed(refVelMotor1-mpuOffset,1);
+        }
         m4ControlSpeed(refVelMotor4,-1);
         m3ControlSpeed(refVelMotor3,1);
       }
@@ -351,6 +357,7 @@ void moveForward(double distance){
     taskEXIT_CRITICAL();   
   }
 }
+
 /**
  * @brief Realiza un movimiento circular del robot con un radio y ángulo específicos.
  *
@@ -395,6 +402,7 @@ void circularMovement(double r, int angle){
   }
 
 }
+
 /**
  * @brief Reinicia todos los parámetros de movimiento y ángulos del robot.
  *
@@ -402,7 +410,6 @@ void circularMovement(double r, int angle){
  * a sus valores iniciales. Se utiliza para preparar el robot para un nuevo movimiento después
  * de completar una acción o para corregir cualquier desviación acumulada en los controles.
  */
-
 void restartMovement(){
   angleMotor1 = 0;
   angleMotor2 = 0;
@@ -433,7 +440,9 @@ void restartMovement(){
  *       ajustándola con el valor de compensación y se usa para actualizar la posición angular y, por
  *       lo tanto, el ángulo total del robot.
  */
+
 void updateAngle(){
+  
   /// Lee los datos crudos del acelerómetro y giroscopio.
   mpu6050_read_raw(acceleration,gyro);
   taskENTER_CRITICAL();
@@ -445,21 +454,26 @@ void updateAngle(){
     }
   }
   else {
+    uint64_t currentTime = time_us_64();
+    // printf("%ld\n",currentTime-prevTimeW);
+    ventana = ((double)(currentTime - prevTimeW)) / 1000000.0;
+    prevTimeW=currentTime;
     /// Fase de cálculo continuo: actualiza la velocidad y posición angular.
     angularVelocity = (gyro[2] > 0 ? gyro[2]+offsetZ : gyro[2]-offsetZ)/131;
-    double angle = (prevAngularPosition + (angularVelocity*wTimeUpdateAngle));
+    double angle = (prevAngularPosition + (angularVelocity*ventana));
     prevAngularPosition = angle;
-    angularPosition = angle > 0 ? angle*1.125: angle*1;
+    angularPosition = angle > 0 ? angle*1: angle*1;
+    robotAngle = angle;
     /// Ajusta el ángulo total del robot.
-    if (angularPosition>=2){
-      prevAngularPosition = 0;
-      robotAngle += 2;
-    }
-    else if (angularPosition<=-2)
-    {
-      prevAngularPosition = 0;
-      robotAngle -= 2;
-    }
+    // if (angularPosition>=2){
+    //   prevAngularPosition = 0;
+    //   robotAngle += 2;
+    // }
+    // else if (angularPosition<=-2)
+    // {
+    //   prevAngularPosition = 0;
+    //   robotAngle -= 2;
+    // }
   }
   taskEXIT_CRITICAL();
 }

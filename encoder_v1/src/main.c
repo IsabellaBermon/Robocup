@@ -56,8 +56,8 @@ int main(){
   xSemaphoreGive(mpuSemaphore);  // Inicializar el semáforo en estado "libre"
 
   // Create tasks on the first core
-  xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 4, NULL);
-  xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 4, NULL);
+  xReturnedA = xTaskCreate(sensorReadingTask, "SensorReadingTask", 1000, NULL, 5, NULL);
+  xReturnedB = xTaskCreate(mpuReadingTask, "mpuReadingTask", 1000, NULL, 5, NULL);
   xReturnedC = xTaskCreate(communicationTask, "CommunicationTask", 1000, NULL, 3, NULL);
   xReturnD = xTaskCreate(robotControlTask, "robotControlTask", 1000, NULL, 3, NULL);
   xReturnE = xTaskCreate(dribbleTask, "dribbleControl", 1000, NULL, 3, NULL);
@@ -113,10 +113,8 @@ void sensorReadingTask(void *pvParameters)
             if (xSemaphoreTake(sensorSemaphore, portMAX_DELAY) == pdTRUE)
             {            
                 // printTaskInfo("Sensor Reading Task");
-                // Realizar la lectura del sensor
-                xSemaphoreTake(mutex, portMAX_DELAY);
-                getAnglesMotors();
-                xSemaphoreGive(mutex); 
+                // Realizar la lectura del sensor                
+                getAnglesMotors();           
                 // Notificar que la lectura del sensor está completa
                 xSemaphoreGive(sensorSemaphore);
             }        
@@ -136,11 +134,9 @@ void mpuReadingTask(void *pvParameters)
             if (xSemaphoreTake(mpuSemaphore, portMAX_DELAY) == pdTRUE)
             {            
                 // printTaskInfo("Sensor Reading Task");
-                xSemaphoreTake(mutex, portMAX_DELAY);
-                updateAngle();
-                // printf("Angulo calculado %f \n",robotAngle);
-                // Liberar el semáforo binario después de actualizar los ángulos
-                xSemaphoreGive(mutex); 
+                updateAngle();                
+                // printf("Ventana de tiempo %.6f \n",ventana);
+                // printf("Angulo calculado %f \n",angularPosition);
                 // Notificar que la lectura del sensor está completa
                 xSemaphoreGive(mpuSemaphore);
             }      
@@ -166,15 +162,14 @@ void rotationTask(void *pvParameters){
         BaseType_t mpuTaken = xSemaphoreTake(mpuSemaphore, portMAX_DELAY);
         if (mpuTaken == pdTRUE)
         {
-            printf("Angulo calculado %f \n",robotAngle);
             // Realizar rotación del robot
+            // printf("Angulo calculado %f \n",robotAngle);
             rotation(angleBt);
         }
         // Liberar el semáforo del MPU si se tomó correctamente
         if (mpuTaken == pdTRUE) { xSemaphoreGive(mpuSemaphore); }
 
-        vTaskDelayUntil(&xLastWakeTime, xFrequency_movement);
-        
+        vTaskDelayUntil(&xLastWakeTime, xFrequency_movement);        
     }
 }
 
