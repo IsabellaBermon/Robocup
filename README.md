@@ -34,5 +34,7 @@ El algoritmo A* ) es un algoritmo popular de búsqueda utilizado para encontrar 
 - Si se encuentra el nodo objetivo, reconstruye el camino retrocediendo desde el nodo objetivo hasta el nodo inicial.
 
 
-### Progreso actual
-<img src= "path_found.png">
+## Ejemplo de ruta encontrada
+En la cuadricula generada para observar la ruta generada '.' representan nodos libres, 'R' dimensiones del robor, '#' dimensiones de los obstaculos y 'O' los nodos de la ruta tomada por el robot. La ruta encontrada se mapea a un arreglo de movimientos que luego serán ejecutados por el robot.
+
+<img src="path_found.png" style="width: 800px;">
