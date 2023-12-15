@@ -1,72 +1,41 @@
-# Robot Robocup - Sistema de Control 
+# Robot Soccer Controller
 
-Esta contiene la implementación de un sistema de control de robot diseñado con 4 ruedas omnidireccionales, una MPU, encoders as5600 y la Raspberry Pi Pico W. El código está estructurado utilizando FreeRTOS para la programación de tareas e incluye módulos para la comunicación Bluetooth, lecturas de sensores, control de motores y funcionalidad de dribbler.
+## Descripción
+Este proyecto es un controlador para un robot de fútbol, diseñado para participar en competiciones de robótica como RoboCup. Utiliza un Raspberry Pi Pico y varios sensores para controlar los movimientos del robot, navegar por el campo, evitar obstáculos y seguir la pelota.
 
-### Características
+## Características
+- Control de movimientos de robots mediante algoritmos de ruta.
+- Conexión WiFi para comunicación en tiempo real.
+- Integración con MQTT para envío de datos.
+- Detección y evasión de obstáculos.
 
-1. **Comunicación Bluetooth:** El sistema establece una conexión Bluetooth para recibir comandos que controlan el robot.
+## Requisitos previos
+Para utilizar este código, necesitarás:
+- Raspberry Pi Pico.
+- Sensores y motores compatibles.
+- Acceso a una red WiFi.
+- Un broker MQTT configurado.
 
-2. **Lectura de Sensores:** Utiliza sensores para recopilar datos, incluidos los ángulos de los motores e información de un sensor MPU6050.
+## Configuración del entorno
+1. Instala el SDK de Raspberry Pi Pico siguiendo las [instrucciones oficiales](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html).
+2. Clona este repositorio en tu máquina local.
+3. Configura los parámetros de conexión WiFi y MQTT en el código (`SSID`, `PASSWORD`, dirección del broker, etc.).
 
-3. **Control de Motores:** Implementa tareas para varios movimientos del robot, como rotación, movimiento hacia adelante y movimiento circular.
+## Compilación y ejecución
+Para compilar y cargar el programa en tu Raspberry Pi Pico:
+1. Navega a la carpeta del proyecto.
+2. Ejecuta `cmake .` para preparar el build.
+3. Ejecuta `make` para compilar el código.
+4. Carga el binario resultante en tu Raspberry Pi Pico.
 
-4. **Funcionalidad de Dribbler:** Controla el mecanismo de dribbler y patea la pelota según los comandos recibidos.
+## Uso
+Una vez que el firmware está cargado y el robot está encendido:
+1. El robot intentará conectarse a la red WiFi configurada.
+2. Una vez conectado, establecerá una conexión MQTT con el broker especificado.
+3. El robot empezará a ejecutar los algoritmos de navegación y seguimiento de pelota.
 
-### Tareas y Planificación
+## Contribuciones
+Las contribuciones son bienvenidas. Si deseas contribuir al proyecto, por favor, envía un pull request o abre un issue para discutir lo que te gustaría cambiar.
 
-La implementación utiliza FreeRTOS para crear tareas concurrentes que operan de manera independiente y se programan para ejecutarse en intervalos específicos. Las tareas principales son:
-
-1. **Tarea de Lectura de Sensores (`sensorReadingTask`):**
-   - Lee los ángulos de los motores y actualiza el estado interno del robot.
-   - Utiliza un semáforo para garantizar la exclusión mutua durante la lectura del sensor.
-
-2. **Tarea de Lectura de MPU (`mpuReadingTask`):**
-   - Lee datos del sensor MPU6050 para calcular la orientación del robot.
-   - También utiliza un semáforo para gestionar el acceso exclusivo al sensor.
-
-3. **Tarea de Comunicación (`communicationTask`):**
-   - Maneja la comunicación Bluetooth utilizando BTstack.
-   - Programada para ejecutarse a intervalos regulares.
-
-4. **Tarea de Control de Robot (`robotControlTask`):**
-   - Gestiona la ejecución de movimientos específicos del robot basados en comandos Bluetooth.
-   - Crea tareas adicionales, como la tarea de rotación, movimiento hacia adelante y movimiento circular.
-
-5. **Tarea de Dribbler (`dribbleTask`):**
-   - Controla el mecanismo de dribbler o realiza una acción de patada según los comandos.
-   - Ejecuta a intervalos regulares.
-
-### Exclusión Mutua y Semáforos
-
-La implementación incorpora exclusión mutua para garantizar un acceso seguro y sincronizado a recursos compartidos. En particular, se utilizan semáforos para lograr esto:
-
-- **Semáforo para Lectura de Sensores (`sensorSemaphore`):**
-  - La tarea `sensorReadingTask` utiliza este semáforo para controlar el acceso al proceso de lectura de sensores. Se adquiere antes de realizar la lectura y se libera después de completarla, evitando conflictos en el acceso simultáneo.
-
-- **Semáforo para Lectura de MPU (`mpuSemaphore`):**
-  - Similar al caso de lectura de sensores, la tarea `mpuReadingTask` utiliza este semáforo para gestionar el acceso exclusivo al sensor MPU6050.
-
-### Configuración de FreeRTOS
-
-El código del sistema de control de robot se ve afectado por diversas configuraciones en el archivo `FreeRTOSConfig.h`. Aquí se describen algunas de las configuraciones más relevantes y su impacto en el código:
-
-#### Planificación y Tiempo
-
-- **`configUSE_PREEMPTION` (1):**
-  - Habilita el uso de un planificador preemptivo. En esta configuración, las tareas pueden ser interrumpidas en cualquier momento por tareas de mayor prioridad. Esto es esencial en sistemas donde la respuesta rápida a eventos es crítica y se necesita una gestión eficiente del tiempo de CPU. Si se deseara un planificador cooperativo, se configuraría en 0.
-
-- **`configUSE_TICKLESS_IDLE` (0):**
-  - Configurado en 1, permite el modo de bajo consumo cuando el sistema está inactivo.
-
-- **`configTICK_RATE_HZ` (1000):**
-  - Frecuencia del tick del sistema en Hz, se establece el valor máximo de funcionamiento.
-
-- **`configNUM_CORES` (2):**
-  - Especifica el número de núcleos del procesador, 2 para la Raspberry Pi Pico W.
-
-### Dependencias
-
-- [FreeRTOS](https://www.freertos.org/)
-- [Pico SDK](https://github.com/raspberrypi/pico-sdk)
-- [BTstack](https://github.com/bluekitchen/btstack)
-
+## Licencia
+[MIT](https://choosealicense.com/licenses/mit/)
