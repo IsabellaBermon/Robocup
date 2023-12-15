@@ -25,9 +25,9 @@ cv2.namedWindow(bin_window_name3, cv2.WINDOW_NORMAL)
 cv2.resizeWindow(bin_window_name3, 305, 305)
 
 # Crear una ventana para mostrar el valor de angle_deg
-angle_window_name = 'Ángulo'
-cv2.namedWindow(angle_window_name, cv2.WINDOW_NORMAL)
-cv2.resizeWindow(angle_window_name, 200, 100)
+# angle_window_name = 'angulo'
+# cv2.namedWindow(angle_window_name, cv2.WINDOW_NORMAL)
+# cv2.resizeWindow(angle_window_name, 200, 100)
 
 # Configurar la captura de video desde la cámara
 cap = cv2.VideoCapture("video3.mp4")  # 0 representa la cámara predeterminada
@@ -78,7 +78,7 @@ while True:
         "pelota": [],
         "objetos": []
     }
-
+            
     # Extracct coordinates and class for each detected object
     for r in results:
         boxes = r.boxes
@@ -89,17 +89,29 @@ while True:
             c = int(np.array(c))
             x_center = int((coord[0] + coord[2]) / 2)
             y_center = int((coord[1] + coord[3]) / 2)
+            
+            # Extraer las coordenadas del bounding box
+            #width, height, _ = frame.shape
+            x1, y1, x2, y2 = map(int, coord)
+            x1 += 50
+            x2 += 55
+            y1 += 120
+            y2 += 130
+    
+            # Dibujar el bounding box en la imagen
+            color = (0, 255, 0)  # Puedes ajustar el color según tus preferencias
+            thickness = 2  # Puedes ajustar el grosor según tus preferencias
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
 
+            # cv2.putText(frame, f'cosa: {coord[0]}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            
             if c == 0:  # Assuming class 0 corresponds to "my robot"
-                    extracted_data["robot"] = [x_center, y_center, 1]
+                    #extracted_data["robot"] = [x_center, y_center, 1]
                     # Definir las coordenadas para el recorte
-                    left = int(coord[0])
-                    top = int(coord[1])
-                    right = int(coord[2])
-                    bottom = int(coord[3])
                     
                     # Recortar la región de interés (ROI)
-                    roi = frame[top:bottom, left:right]
+                    roi = frame[y1:y2, x1:x2]
+                    #roi = frame[top:bottom, left:right]
                     # Mostrar el recorte en una ventana separada
                     cv2.imshow(bin_window_name2, roi)
 
@@ -209,10 +221,10 @@ while True:
                                 angle_deg = angle_deg - 180
                                 #print(int(angle_deg))
                                 # Mostrar el valor de angle_deg en la ventana
-                                cv2.putText(frame, f'Ángulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                                cv2.putText(frame, f'angulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                                 
                                 # Mostrar la imagen con el valor de angle_deg
-                                cv2.imshow(angle_window_name, frame)
+                                #cv2.imshow(angle_window_name, frame)
                                 
                                 # Calcular los puntos de inicio y fin de la línea verde
                                 line_length = 500  # Longitud deseada de la línea verde
@@ -253,10 +265,11 @@ while True:
                 extracted_data["objetos"].append((x_center, y_center))
 
             # Dibujar un círculo en el centro del objeto detectado
-            cv2.circle(frame, (x_center, y_center), radius=10, color=(0, 255, 0), thickness=2)
+            #cv2.circle(frame, (x_center, y_center), radius=10, color=(0, 255, 0), thickness=2)
+            #cv2.rectangle(frame, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
 
             # Agregar etiqueta
-            cv2.putText(frame, str(c), (x_center + 10, y_center - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            #cv2.putText(frame, str(c), (x_center + 10, y_center - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     # Mostrar el frame con los resultados en tiempo real
     cv2.imshow('Object Detection', frame)
@@ -265,7 +278,7 @@ while True:
     json_data = json.dumps(extracted_data, indent=2)
 
     # Imprimir el JSON resultante
-    print(json_data)
+    #print(json_data)
 
     # Salir del bucle si se presiona la tecla 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
