@@ -8,9 +8,6 @@
  * Además, se definen variables globales y constantes utilizadas en el control de movimiento.
  */
 #include "robot_movement.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
 
 #define N_SAMPLES 100            ///< Número de muestras para el filtro del acelerometro.
 #define ACCEL_SCALE_FACTOR 16384.0 ///< Factor de escala para datos del acelerómetro.
@@ -271,7 +268,7 @@ void readAndProcessAccelerometer(int *ax, int *ay) {
  *       el objetivo. Utiliza 'motorStop' para detener los motores, 'restartControl' y 'restartMovement'
  *       para restablecer los controles del robot, y 'getOffsets' para actualizar los parámetros necesarios.
  */
-void rotation(double rotationAngle){
+void rotation(int rotationAngle){
   wTimeUpdateAngle=0.0028;
   /// Ajusta los offsets para los motores en la rotación.
   offCW1 = 736;
@@ -280,7 +277,6 @@ void rotation(double rotationAngle){
   offCW4 = 736;
   /// Inicia la rotación en el sentido de las agujas del reloj si el ángulo es positivo.
   if(rotationAngle > 0){
-    taskENTER_CRITICAL();
     motorsClockWise();
     /// Verifica si el ángulo objetivo está cerca de ser alcanzado.    
     if(robotAngle+20>=rotationAngle){      
@@ -290,7 +286,20 @@ void rotation(double rotationAngle){
       getOffsets();      ///< Actualiza los offsets
       banStop = true;    ///< Indica que se ha completado la rotación  
     }
-    taskEXIT_CRITICAL();
+  }else if(rotationAngle < 0){
+    motorCounterClockWise1();
+    motorCounterClockWise2();
+    motorCounterClockWise3();
+    motorCounterClockWise4();
+    if(robotAngle-20 <= rotationAngle){
+      motorStop();       ///< Detiene los motores
+      restartControl();  ///< Reinicia los controles del robot
+      restartMovement(); ///< Reinicia el movimiento
+      getOffsets();      ///< Actualiza los offsets
+      banStop = true;    ///< Indica qu
+    }
+  }else{
+    banStop=true;
   }
 }
 
@@ -317,7 +326,6 @@ void moveForward(double distance){
   offCC4 = 775;
   wTimeUpdateAngle=0.0022;
   if (distance > 0){  
-    taskENTER_CRITICAL();
     int mpuOffset = 0.5*robotAngle;///< Offset basado en el ángulo actual del robot.
     motorsForward(); ///< Inicia el movimiento hacia adelante.
     distanceMotorsForward(); ///< Controla la distancia a avanzar.
@@ -354,7 +362,6 @@ void moveForward(double distance){
       distanceMotorsForward(); //< Continúa controlando la distancia a avanzar.
     }
     //dualMotorPIDControl();
-    taskEXIT_CRITICAL();   
   }
 }
 
@@ -445,7 +452,6 @@ void updateAngle(){
   
   /// Lee los datos crudos del acelerómetro y giroscopio.
   mpu6050_read_raw(acceleration,gyro);
-  taskENTER_CRITICAL();
   /// Fase inicial: calcula el offset del giroscopio
   if(angularFlag==true){
     offsetZ = filter_median_moving(gyro[2]);
@@ -475,5 +481,4 @@ void updateAngle(){
     //   robotAngle -= 2;
     // }
   }
-  taskEXIT_CRITICAL();
 }

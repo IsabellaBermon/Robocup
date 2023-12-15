@@ -134,7 +134,7 @@ void distanceMotorsClockWise();
  * @brief Rota el robot en un ángulo específico.
  * @param rotationAngle Ángulo de rotación en grados.
  */
-void rotation(double rotationAngle);
+void rotation(int rotationAngle);
 
 /**
  * @brief Mueve el robot hacia adelante una distancia específica.
