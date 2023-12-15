@@ -152,7 +152,7 @@ void NodeList_add(NodeList* list, Node* node) {
         list->items[list->size++] = node;
     }
 
-
+}
 /**
  * @brief Verifica si un nodo específico está contenido en la lista de nodos.
  * 
