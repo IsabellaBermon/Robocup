@@ -13,8 +13,8 @@
 extern int numMovimientos;
 extern int numMovimientosConsolidados;
 typedef struct {
-    float x;
-    float y;
+    int x;
+    int y;
 } Point;
 
 typedef struct {
