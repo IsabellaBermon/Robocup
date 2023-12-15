@@ -275,6 +275,11 @@ void rotation(int rotationAngle){
   offCW2 = 736;
   offCW3 = 767; 
   offCW4 = 736;
+
+  offCC1 = 778; 
+  offCC2 = 778; 
+  offCC3 = 733; 
+  offCC4 = 774;
   /// Inicia la rotación en el sentido de las agujas del reloj si el ángulo es positivo.
   if(rotationAngle > 0){
     motorsClockWise();
@@ -291,7 +296,7 @@ void rotation(int rotationAngle){
     motorCounterClockWise2();
     motorCounterClockWise3();
     motorCounterClockWise4();
-    if(robotAngle-20 <= rotationAngle){
+    if(robotAngle-25 <= rotationAngle){
       motorStop();       ///< Detiene los motores
       restartControl();  ///< Reinicia los controles del robot
       restartMovement(); ///< Reinicia el movimiento

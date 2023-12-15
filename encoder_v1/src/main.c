@@ -1,5 +1,3 @@
-// IMPLEMENTACIÓN REALIZADA EN EL MONTAJE DEL ROBOT
-
 #include <stdio.h>
 #include <stdint.h>
 #include "pico/stdlib.h"
@@ -66,7 +64,7 @@ void HardwareInit()
     getOffsets();
     initMotor();
     initMotorControl();
-    dribble();
+    // dribble();
     wifiConnect();
     connect_mqtt();
 }
@@ -93,11 +91,23 @@ int main(){
 
   HardwareInit();
   while(1){
+    // getAnglesMotors();
+    // updateAngle();
+    // if (!banStop){
+    //     rotation(-45);
+    //     printf("angulo %f \n",robotAngle);
+    // }
+    // else{
+    //     sleep_ms(1000);
+    //     rotation(-45);
+    //     banStop = false;
+    // }
+    
     if(banPositions){        
         pathFinder();
         for (int i = 0; i < numMovimientosConsolidados; i++) {
             while(1){
-                printf("rotacion\n");
+                // printf("rotacion\n");
                 updateAngle();
                 rotation(movimientosConsolidados[i].giro);
                 if(banStop){
@@ -105,8 +115,9 @@ int main(){
                     break;
                 }
             }
+            sleep_ms(500);
             while(1){
-                printf("adelante\n");
+                // printf("adelante\n");
 
                 getAnglesMotors();
                 updateAngle();
@@ -116,9 +127,11 @@ int main(){
                     break;
                 }
             }
-        
+            sleep_ms(500);        
         }
         banPositions=false;
+        numMovimientos = 0;
+        numMovimientosConsolidados = 0;
     }
   }
   return 0;
