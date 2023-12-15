@@ -2,7 +2,7 @@
 
 ### Lógica del funcionamiento 
 
-<img src= "diag.png" width="350" height="400">
+<img src= "diag.png" width="500" height="350">
 
 ## Objetivos
 
