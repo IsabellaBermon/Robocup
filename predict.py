@@ -239,7 +239,7 @@ while(True):
                                 else:
                                     # Manejar el caso donde angle_deg no es un entero o no está en el rango deseado
                                     print("El ángulo no es un número entero o no está en el rango [0, 360].")
-                                    extracted_data["robot"] = [int(y_center * 0.086), int(x_center * 0.083), 0]
+                                    extracted_data["robot"] = [30-int(y_center * 0.086), int(x_center * 0.083), 0]
                                 # Mostrar la imagen con el valor de angle_deg
                                 #cv2.imshow(angle_window_name, frame)
                                 
@@ -276,9 +276,9 @@ while(True):
 
         
             elif c == 3:  # Assuming class 1 corresponds to "pelota"
-                extracted_data["pelota"] = [int(y_center*0.086), int(x_center*0.083)]
+                extracted_data["pelota"] = [30-int(y_center*0.086), int(x_center*0.083)]
             elif c==2 or c==1:  # Assuming other classes correspond to "objetos"
-                extracted_data["objetos"].append([int(y_center*0.086),int(x_center*0.083)])
+                extracted_data["objetos"].append([30-int(y_center*0.086),int(x_center*0.083)])
                 # extracted_data["objetos"].append(int(x_center*0.083))
 
             # Dibujar un círculo en el centro del objeto detectado
