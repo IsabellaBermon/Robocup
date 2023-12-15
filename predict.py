@@ -6,6 +6,8 @@ import shutil
 import json
 from mqtt import client,flagPayload
 
+angle_deg = 0
+
 # Load a model
 model = YOLO('best.pt')
 
@@ -35,9 +37,13 @@ def map_coordinates(x, a, b, c, d):
     Mapea el valor x de un rango [a, b] a un rango [c, d].
     """
     return (x - a) * (d - c) / (b - a) + c
-
-flag=True
+flag=False 
+cont=0
 while(True):
+    cont+=1
+    if(cont==30):
+        flag=True
+
     # Capturar frame desde la cámara
     ret, frame = cap.read()
     # Convertir la imagen a escala de grises
@@ -221,14 +227,19 @@ while(True):
                                 angle_rad = np.arctan2(delta_y, delta_x)
                                 angle_deg = (angle_rad * 180) / np.pi
 
-                                # Ajustar el ángulo para que esté en el rango [0, 360] en sentido antihorario
-                                angle_deg = 360 - angle_deg if angle_deg > 0 else -angle_deg
-                                angle_deg = angle_deg - 180
-                                extracted_data["robot"] = [x_center, y_center, int(angle_deg)]
-                                #print(int(angle_deg))
-                                # Mostrar el valor de angle_deg en la ventana
-                                cv2.putText(frame, f'angulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                                
+                               
+                                # Verificar que angle_deg sea un número entero y está en el rango [0, 360]
+                                if isinstance(angle_deg, int) and 0 <= angle_deg <= 360:
+                                    # Asignar los valores al diccionario
+                                    extracted_data["robot"] = [int(y_center), int(x_center), int(angle_deg)]
+                                    print(y_center,x_center)
+
+                                    # Mostrar el valor de angle_deg en la ventana
+                                    cv2.putText(frame, f'angulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                                else:
+                                    # Manejar el caso donde angle_deg no es un entero o no está en el rango deseado
+                                    print("El ángulo no es un número entero o no está en el rango [0, 360].")
+                                    extracted_data["robot"] = [int(y_center * 0.086), int(x_center * 0.083), 0]
                                 # Mostrar la imagen con el valor de angle_deg
                                 #cv2.imshow(angle_window_name, frame)
                                 
@@ -263,13 +274,12 @@ while(True):
                     cv2.imshow(bin_window_name, image_with_contours)
                     #cv2.imwrite("output_with_cross.jpg", image_with_contours)
 
-
-                    
+        
             elif c == 3:  # Assuming class 1 corresponds to "pelota"
-                extracted_data["pelota"] = [x_center, y_center]
-            else:  # Assuming other classes correspond to "objetos"
-                extracted_data["objetos"].append(x_center)
-                extracted_data["objetos"].append(y_center)
+                extracted_data["pelota"] = [int(y_center*0.086), int(x_center*0.083)]
+            elif c==2 or c==1:  # Assuming other classes correspond to "objetos"
+                extracted_data["objetos"].append([int(y_center*0.086),int(x_center*0.083)])
+                # extracted_data["objetos"].append(int(x_center*0.083))
 
             # Dibujar un círculo en el centro del objeto detectado
             #cv2.circle(frame, (x_center, y_center), radius=10, color=(0, 255, 0), thickness=2)
@@ -282,14 +292,19 @@ while(True):
     cv2.imshow('Object Detection', frame)
 
     
-    # if(flag):
-    #     extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
-    #     print(extracted_data)
-    #     # client.publish("robot/posiciones",extracted_data)
-    #     flag=False
-    extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
-    print(extracted_data)
-        
+    if(flag==True):
+        if(len(extracted_data["objetos"])>2):
+            extracted_data["objetos"].pop()
+        # if(len(extracted_data["objetos"])>2):
+        #     extracted_data["objetos"].pop()
+        print(extracted_data)
+        extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
+        extracted_data=extracted_data.replace("[","").replace("]","")
+        extracted_data=extracted_data.replace(" ","")
+        print(extracted_data)
+        client.publish("robot/posiciones",extracted_data)
+        flag=False
+        break
 
     # Salir del bucle si se presiona la tecla 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
