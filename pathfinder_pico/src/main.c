@@ -6,16 +6,16 @@ int main() {
     
     stdio_init_all();
 
-    Robot robot = {{1, 1}, 0};
-    Ball ball = {{25, 25}};        // Example ball position
-    Obstacle obstacles[NUM_OBSTACLES] = { {{5, 5}}, {{15, 15}}, {{24, 20}}};  // Example obstacle positions
+    Robot robot = {{2, 2}, 0};
+    Ball ball = {{20, 20}};        // Example ball position
+    Obstacle obstacles[NUM_OBSTACLES] = { {{8, 8}}, {{15, 15}}};  // Example obstacle positions
 
     Node nodes[GRID_WIDTH][GRID_HEIGHT];
     initializeNodes(nodes, &robot, &ball, obstacles, NUM_OBSTACLES);
 
     Point start = {robot.position.x, robot.position.y};
     Point goal = {ball.position.x, ball.position.y};  
-    Point arco = {GRID_WIDTH/2,GRID_HEIGHT-2};
+    Point arco = {GRID_WIDTH/2,GRID_HEIGHT-3};
 
     NodeList pathList;
 
@@ -28,7 +28,7 @@ int main() {
     // consolidateMovements(movimientos, numMovimientos, movimientosConsolidados, &numMovimientosConsolidados);
     sleep_ms(3000);
     NodeList_init(&pathList);
-    AStar(nodes, goal, arco, &pathList);
+    AStar(nodes, start, goal, &pathList);
     while (1)
     {
            

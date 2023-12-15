@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define GRID_WIDTH 40
-#define GRID_HEIGHT 50
-#define NUM_OBSTACLES 3
+#define GRID_WIDTH 31 // Resolucion 4 cm/cuadricula
+#define GRID_HEIGHT 49
+#define NUM_OBSTACLES 2
 #define INFINITE_COST 99999
 #define MAX_NODES 200 // Un número arbitrario que sea suficientemente grande
-#define OBJECT_SIZE 3
+#define OBJECT_SIZE 5
 
 
 extern int numMovimientos;
