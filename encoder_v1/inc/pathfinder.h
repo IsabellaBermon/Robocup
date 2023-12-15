@@ -53,13 +53,7 @@ typedef struct {
 } Movimiento;
 
 
-// void markObjectInGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], int centerX, int centerY, char type);
-
 void markObjectInGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], int centerX, int centerY, char type);
-
-// void initializeGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], Robot *robot, Ball *ball, Obstacle obstacles[], int numObstacles);
-
-// void printGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT]);
 
 void printGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT]);
 
@@ -84,8 +78,6 @@ void reconstructPath(Node* goalNode, NodeList* pathList);
 void NodeList_reverse(NodeList *list);
 
 void markPathOnGrid(Node nodes[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, char pathMarker);
-
-// void markPathOnGrid(Cell grid[GRID_WIDTH][GRID_HEIGHT], NodeList *pathList, char pathMarker);
 
 void convertPathToMovements(NodeList *pathList, Movimiento* movimientos);
 
