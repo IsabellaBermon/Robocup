@@ -4,13 +4,11 @@ import cv2
 import os
 import shutil
 import json
-#from detect_dots import calculateAngle
-
-# Path to robot crop
-#folder = "runs/detect/predict/crops/0"
+from mqtt import client,flagPayload
 
 # Load a model
-model = YOLO('C:/Users/Daniela Cuartas/Documents/UdeA/Semestre 9/Embebidos/best.pt')
+model = YOLO('best.pt')
+
 
 bin_window_name2 = 'recorte'
 cv2.namedWindow(bin_window_name2, cv2.WINDOW_NORMAL)
@@ -25,14 +23,21 @@ cv2.namedWindow(bin_window_name3, cv2.WINDOW_NORMAL)
 cv2.resizeWindow(bin_window_name3, 305, 305)
 
 # Crear una ventana para mostrar el valor de angle_deg
-angle_window_name = 'Ángulo'
-cv2.namedWindow(angle_window_name, cv2.WINDOW_NORMAL)
-cv2.resizeWindow(angle_window_name, 200, 100)
+# angle_window_name = 'angulo'
+# cv2.namedWindow(angle_window_name, cv2.WINDOW_NORMAL)
+# cv2.resizeWindow(angle_window_name, 200, 100)
 
 # Configurar la captura de video desde la cámara
-cap = cv2.VideoCapture("video3.mp4")  # 0 representa la cámara predeterminada
+cap = cv2.VideoCapture(1)  # 0 representa la cámara predeterminada
 
-while True:
+def map_coordinates(x, a, b, c, d):
+    """
+    Mapea el valor x de un rango [a, b] a un rango [c, d].
+    """
+    return (x - a) * (d - c) / (b - a) + c
+
+flag=True
+while(True):
     # Capturar frame desde la cámara
     ret, frame = cap.read()
     # Convertir la imagen a escala de grises
@@ -67,8 +72,8 @@ while True:
 
     # Mostrar la imagen final con el contenido dentro del contorno rojo
     #cv2.imshow(bin_window_name3, result_image_cropped)
-    
-    
+
+
     # Perform object detection using the model
     results = model.predict(result_image_cropped, conf=0.5, save=False)  # No es necesario guardar los resultados en este caso
     cv2.imshow(bin_window_name3, result_image_cropped)
@@ -78,7 +83,7 @@ while True:
         "pelota": [],
         "objetos": []
     }
-
+            
     # Extracct coordinates and class for each detected object
     for r in results:
         boxes = r.boxes
@@ -89,17 +94,29 @@ while True:
             c = int(np.array(c))
             x_center = int((coord[0] + coord[2]) / 2)
             y_center = int((coord[1] + coord[3]) / 2)
+            
+            # Extraer las coordenadas del bounding box
+            #width, height, _ = frame.shape
+            x1, y1, x2, y2 = map(int, coord)
+            x1 += 1
+            x2 += 10
+            y1 += 10
+            y2 += 10
 
+            # Dibujar el bounding box en la imagen
+            color = (0, 255, 0)  # Puedes ajustar el color según tus preferencias
+            thickness = 2  # Puedes ajustar el grosor según tus preferencias
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
+
+            # cv2.putText(frame, f'cosa: {coord[0]}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            
             if c == 0:  # Assuming class 0 corresponds to "my robot"
-                    extracted_data["robot"] = [x_center, y_center, 1]
+                    #extracted_data["robot"] = [x_center, y_center, 1]
                     # Definir las coordenadas para el recorte
-                    left = int(coord[0])
-                    top = int(coord[1])
-                    right = int(coord[2])
-                    bottom = int(coord[3])
                     
                     # Recortar la región de interés (ROI)
-                    roi = frame[top:bottom, left:right]
+                    roi = frame[y1:y2, x1:x2]
+                    #roi = frame[top:bottom, left:right]
                     # Mostrar el recorte en una ventana separada
                     cv2.imshow(bin_window_name2, roi)
 
@@ -207,12 +224,13 @@ while True:
                                 # Ajustar el ángulo para que esté en el rango [0, 360] en sentido antihorario
                                 angle_deg = 360 - angle_deg if angle_deg > 0 else -angle_deg
                                 angle_deg = angle_deg - 180
+                                extracted_data["robot"] = [x_center, y_center, int(angle_deg)]
                                 #print(int(angle_deg))
                                 # Mostrar el valor de angle_deg en la ventana
-                                cv2.putText(frame, f'Ángulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                                cv2.putText(frame, f'angulo: {int(angle_deg)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                                 
                                 # Mostrar la imagen con el valor de angle_deg
-                                cv2.imshow(angle_window_name, frame)
+                                #cv2.imshow(angle_window_name, frame)
                                 
                                 # Calcular los puntos de inicio y fin de la línea verde
                                 line_length = 500  # Longitud deseada de la línea verde
@@ -229,9 +247,9 @@ while True:
                             if centroids_blue:
                                 cross_size = 500
                                 cv2.line(image_with_contours, (centroids_blue[0][0] - cross_size, centroids_blue[0][1]),
-                                         (centroids_blue[0][0] + cross_size, centroids_blue[0][1]), (100, 0, 100), 2)
+                                            (centroids_blue[0][0] + cross_size, centroids_blue[0][1]), (100, 0, 100), 2)
                                 cv2.line(image_with_contours, (centroids_blue[0][0], centroids_blue[0][1] - cross_size),
-                                         (centroids_blue[0][0], centroids_blue[0][1] + cross_size), (100, 0, 100), 2)
+                                            (centroids_blue[0][0], centroids_blue[0][1] + cross_size), (100, 0, 100), 2)
 
                             # Dibujar un círculo alrededor del centroide azul para representar un transportador
                             if centroids_blue:
@@ -250,22 +268,28 @@ while True:
             elif c == 3:  # Assuming class 1 corresponds to "pelota"
                 extracted_data["pelota"] = [x_center, y_center]
             else:  # Assuming other classes correspond to "objetos"
-                extracted_data["objetos"].append((x_center, y_center))
+                extracted_data["objetos"].append(x_center)
+                extracted_data["objetos"].append(y_center)
 
             # Dibujar un círculo en el centro del objeto detectado
-            cv2.circle(frame, (x_center, y_center), radius=10, color=(0, 255, 0), thickness=2)
+            #cv2.circle(frame, (x_center, y_center), radius=10, color=(0, 255, 0), thickness=2)
+            #cv2.rectangle(frame, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
 
             # Agregar etiqueta
-            cv2.putText(frame, str(c), (x_center + 10, y_center - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            #cv2.putText(frame, str(c), (x_center + 10, y_center - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     # Mostrar el frame con los resultados en tiempo real
     cv2.imshow('Object Detection', frame)
 
-    # Convertir el diccionario a formato JSON
-    json_data = json.dumps(extracted_data, indent=2)
-
-    # Imprimir el JSON resultante
-    print(json_data)
+    
+    # if(flag):
+    #     extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
+    #     print(extracted_data)
+    #     # client.publish("robot/posiciones",extracted_data)
+    #     flag=False
+    extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
+    print(extracted_data)
+        
 
     # Salir del bucle si se presiona la tecla 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -274,3 +298,21 @@ while True:
 # Liberar la captura de video y cerrar las ventanas
 cap.release()
 cv2.destroyAllWindows()
+
+
+# # Convertir los valores de cada clave a cadenas y unirlos con comas
+# result_string = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
+# extracted_data = "2,2,30,10,20,8,8,15,15"
+# client.publish("robot/posiciones",extracted_data)
+# flagPayload = False
+# if(flagPayload):
+
+# extracted_data = ",".join([",".join(map(str, values)) for values in extracted_data.values()])
+# client.publish("robot/posiciones",extracted_data)
+
+# flagPayload=False
+
+# # Salir del bucle si se presiona la tecla 'q'
+# if cv2.waitKey(1) & 0xFF == ord('q'):
+#     break
+
