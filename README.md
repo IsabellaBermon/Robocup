@@ -1,5 +1,9 @@
 # Proyecto Robocup Soccer SSL-C
 
+### Lógica del funcionamiento 
+
+<img src= "diag.png" width="350" height="350">
+
 ## Objetivos
 
 - Implementar el sistema mecánico que permite a un robot de la liga SSL de Robocup desplazarse en el campo de juego de forma rápida y eficiente.
